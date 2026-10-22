@@ -1,5 +1,15 @@
 # XGBoost Talladega Predictor: 5 Car
 
+[![XGBoost](https://img.shields.io/badge/XGBoost-3.4-EB6834?style=for-the-badge)](https://xgboost.readthedocs.io/)
+[![SHAP](https://img.shields.io/badge/SHAP-pred__contribs-2A78D6?style=for-the-badge)](https://xgboost.readthedocs.io/en/stable/prediction.html#prediction-options)
+[![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![Streamlit](https://img.shields.io/badge/Streamlit-1.66-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)](https://streamlit.io/)
+[![Plotly](https://img.shields.io/badge/Plotly-7-3F4F75?style=for-the-badge&logo=plotly&logoColor=white)](https://plotly.com/python/)
+
+[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://xgboost-talladega-5-car.streamlit.app)
+
+**▶ Live demo: [xgboost-talladega-5-car.streamlit.app](https://xgboost-talladega-5-car.streamlit.app)**
+
 **An end-to-end XGBoost project on real, messy, very small data.** It forecasts how
 the #5 Hendrick Motorsports car (Kyle Larson) will run in the next NASCAR Cup race
 at Talladega, then explains every forecast and tests itself honestly against a
