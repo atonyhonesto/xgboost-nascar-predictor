@@ -1,0 +1,21 @@
+{
+  "features": [
+    "start_pct_field",
+    "qual_gap_to_pole_pct",
+    "is_playoff",
+    "is_gen7",
+    "is_hendrick",
+    "prior_talladega_starts",
+    "prev_fin",
+    "hist_mean_fin",
+    "prev_rating",
+    "hist_mean_rating",
+    "prev_avg_run_pos",
+    "hist_mean_avg_run_pos",
+    "hist_mean_laps_led",
+    "hist_dnf_rate",
+    "hist_crash_rate"
+  ],
+  "fallback": 0.30434782608695654,
+  "fitted": true
+}

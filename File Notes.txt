@@ -1,0 +1,23 @@
+I’ve built two CSVs covering all 23 Cup races Larson has run at Talladega, from spring 2014 through spring 2026. He didn’t race either 2020 event, and the fall 2026 race isn’t until Oct 25, so neither is in the data.
+
+larson_talladega_raw.csv has 56 columns, one row per race:
+start, finish, laps led and completed, status, stage finishes and points
+loop data: driver rating, average running position, green-flag and quality passes, fastest laps run, % of laps in the top 15
+qualifying time and speed, cautions, lead changes, winner, crew chief
+Goodyear left- and right-side tire codes, plus source URLs for every row
+larson_talladega_model.csv is ready to load into XGBoost. It has only features you’d know before the green flag:
+start position and start position relative to field size
+qualifying speed, team, manufacturer, crew chief, car generation (Gen6 or Gen7), spring or fall, playoff race
+tire codes
+lagged history: his previous Talladega finish, rating, running position and laps led, the running averages of each, his DNF rate so far, and his count of prior Talladega starts
+three targets: finish position, a top-10 flag and a DNF flag
+
+The raw file’s loop data is recorded after each race, so feeding it in directly would leak the answer into the model. That’s why the model file only uses it in lagged form.
+
+Data caveats:
+
+Per-lap times aren’t included. Free sources only publish a count of fastest laps run, not actual lap times. If you have lap data in your Parquet MCP server, you could join it on race_date.
+Tire codes are partly inferred. Goodyear changes compounds rarely, so for some races the code was carried over from a neighbouring race’s notes. The tire_code_basis column marks each row as stated, inferred or partial, and spring 2014 has no codes. Since there are only about four distinct codes, tires will mostly act as a stand-in for the era.
+Qualifying is blank for 4 races that had no time trials.
+Official results disagree with the loop data twice. For spring 2025 and fall 2023, I used the official finishing positions and flagged the difference in notes.
+23 rows is far too few to train on reliably. He finishes 2nd one race and 40th the next, which is typical of superspeedway racing. A better plan is to collect the same columns for every driver in every Talladega race, and probably Daytona and Atlanta too. That gives you about 900 or more rows, with Larson as one category within them. I can send the agent to build that next.

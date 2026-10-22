@@ -1,0 +1,29 @@
+{
+  "features": [
+    "start_pct_field",
+    "qual_gap_to_pole_pct",
+    "is_playoff",
+    "is_gen7",
+    "is_hendrick",
+    "prior_talladega_starts",
+    "prev_fin",
+    "hist_mean_fin",
+    "prev_rating",
+    "hist_mean_rating",
+    "prev_avg_run_pos",
+    "hist_mean_avg_run_pos",
+    "hist_mean_laps_led",
+    "hist_dnf_rate",
+    "hist_crash_rate",
+    "prev_pct_laps_top10",
+    "hist_mean_pct_laps_top10",
+    "prev_pct_laps_top5",
+    "hist_mean_late_race_avg_pos",
+    "hist_mean_run_pos_std",
+    "hist_mean_median_tire_stop_sec",
+    "hist_mean_pit_road_pos_net",
+    "hist_mean_incident_notes"
+  ],
+  "fallback": 22.0,
+  "fitted": true
+}

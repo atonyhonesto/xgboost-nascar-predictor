@@ -1,0 +1,24 @@
+season,race_date,season_half,playoff_race,team,manufacturer,crew_chief,start_position,qualifying_speed_mph,field_size,tire_left_code,tire_right_code,car_gen,start_pct_field,prev_fin,hist_mean_fin,prev_rating,hist_mean_rating,prev_avg_run_pos,hist_mean_avg_run_pos,prev_laps_led,hist_mean_laps_led,hist_dnf_rate,prior_talladega_starts,target_finish_position,target_top10,target_dnf
+2014,2014-05-04,spring,N,Chip Ganassi Racing,Chevrolet,Chris Heroy,29,197.77,43,,,gen6,0.674,,,,,,,,,,0,9,1,0
+2014,2014-10-19,fall,Y,Chip Ganassi Racing,Chevrolet,Chris Heroy,42,176.8,43,D-4596,D-4630,gen6,0.977,9.0,9.0,94.8,94.8,16.0,16.0,0.0,0.0,0.0,1,17,0,0
+2015,2015-05-03,spring,N,Chip Ganassi Racing,Chevrolet,Chris Heroy,13,192.792,43,D-4596,D-4630,gen6,0.302,17.0,13.0,96.4,95.6,15.0,15.5,0.0,0.0,0.0,2,42,0,1
+2015,2015-10-25,fall,Y,Chip Ganassi Racing,Chevrolet,Chris Heroy,23,191.727,43,D-4596,D-4630,gen6,0.535,42.0,22.67,50.3,80.5,35.0,22.0,0.0,0.0,0.333,3,24,0,0
+2016,2016-05-01,spring,N,Chip Ganassi Racing,Chevrolet,Chad Johnston,24,190.166,40,D-4596,D-4630,gen6,0.6,24.0,23.0,86.1,81.9,10.0,19.0,0.0,0.0,0.25,4,29,0,0
+2016,2016-10-23,fall,Y,Chip Ganassi Racing,Chevrolet,Chad Johnston,24,190.162,40,D-4596,D-4630,gen6,0.6,29.0,24.2,60.4,77.6,18.0,18.8,9.0,1.8,0.2,5,6,1,0
+2017,2017-05-07,spring,N,Chip Ganassi Racing,Chevrolet,Chad Johnston,21,188.448,40,D-4596,,gen6,0.525,6.0,21.17,96.8,80.8,10.0,17.33,0.0,1.5,0.167,6,12,0,0
+2017,2017-10-15,fall,Y,Chip Ganassi Racing,Chevrolet,Chad Johnston,12,189.242,40,D-4596,,gen6,0.3,12.0,19.86,81.9,80.96,22.0,18.0,0.0,1.29,0.143,7,13,0,0
+2018,2018-04-29,spring,N,Chip Ganassi Racing,Chevrolet,Chad Johnston,22,190.943,40,D-4596,D-4752,gen6,0.55,13.0,19.0,76.0,80.34,14.0,17.5,0.0,1.12,0.125,8,40,0,1
+2018,2018-10-14,fall,Y,Chip Ganassi Racing,Chevrolet,Chad Johnston,34,188.731,40,D-4596,D-4752,gen6,0.85,40.0,21.33,69.6,79.14,27.0,18.56,0.0,1.0,0.222,9,11,0,0
+2019,2019-04-28,spring,N,Chip Ganassi Racing,Chevrolet,Chad Johnston,10,190.784,40,D-4886,D-4752,gen6,0.25,11.0,20.3,80.9,79.32,19.0,18.6,0.0,0.9,0.2,10,24,0,1
+2019,2019-10-14,fall,Y,Chip Ganassi Racing,Chevrolet,Chad Johnston,12,190.776,40,D-4886,D-4952,gen6,0.3,24.0,20.64,76.2,79.04,12.0,18.0,1.0,0.91,0.273,11,39,0,1
+2021,2021-04-25,spring,N,Hendrick Motorsports,Chevrolet,Cliff Daniels,12,,40,D-4886,D-4952,gen6,0.3,39.0,22.17,68.7,78.18,24.0,18.5,0.0,0.83,0.333,12,40,0,1
+2021,2021-10-04,fall,Y,Hendrick Motorsports,Chevrolet,Cliff Daniels,5,,40,D-4886,D-4952,gen6,0.125,40.0,23.54,23.2,73.95,40.0,20.15,0.0,0.77,0.385,13,37,0,0
+2022,2022-04-24,spring,N,Hendrick Motorsports,Chevrolet,Cliff Daniels,5,179.817,39,D-5142,D-5116,gen7,0.128,37.0,24.5,60.8,73.01,27.0,20.64,3.0,0.93,0.357,14,4,1,0
+2022,2022-10-02,fall,Y,Hendrick Motorsports,Chevrolet,Cliff Daniels,2,180.516,37,D-5142,D-5116,gen7,0.054,4.0,23.13,118.0,76.01,5.0,19.6,32.0,3.0,0.333,15,18,0,0
+2023,2023-04-23,spring,N,Hendrick Motorsports,Chevrolet,Cliff Daniels,9,179.656,38,D-5142,D-5116,gen7,0.237,18.0,22.81,88.4,76.78,11.0,19.06,8.0,3.31,0.312,16,33,0,1
+2023,2023-10-01,fall,Y,Hendrick Motorsports,Chevrolet,Cliff Daniels,4,181.549,38,D-5142,D-5116,gen7,0.105,33.0,23.41,65.7,76.13,15.0,18.82,0.0,3.12,0.353,17,15,0,0
+2024,2024-04-21,spring,N,Hendrick Motorsports,Chevrolet,Cliff Daniels,38,,38,D-5142,D-5116,gen7,1.0,15.0,22.94,93.9,77.12,8.0,18.22,1.0,3.0,0.333,18,21,0,0
+2024,2024-10-06,fall,Y,Hendrick Motorsports,Chevrolet,Cliff Daniels,12,181.292,40,D-5142,D-5116,gen7,0.3,21.0,22.84,67.9,76.63,21.0,18.37,0.0,2.84,0.316,19,4,1,0
+2025,2025-04-27,spring,N,Hendrick Motorsports,Chevrolet,Cliff Daniels,25,179.963,39,D-5142,D-5218,gen7,0.641,4.0,21.9,89.9,77.3,14.0,18.15,1.0,2.75,0.3,20,2,1,0
+2025,2025-10-19,fall,Y,Hendrick Motorsports,Chevrolet,Cliff Daniels,19,181.12,40,D-5142,D-5218,gen7,0.475,2.0,20.95,92.4,78.01,15.0,18.0,3.0,2.76,0.286,21,26,0,0
+2026,2026-04-26,spring,N,Hendrick Motorsports,Chevrolet,Cliff Daniels,2,,40,D-5142,D-5218,gen7,0.05,26.0,21.18,72.2,77.75,16.0,17.91,6.0,2.91,0.273,22,40,0,1
