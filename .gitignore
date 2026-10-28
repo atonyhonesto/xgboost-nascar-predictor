@@ -1,7 +1,13 @@
+# Local Python environment and caches
 .venv/
 __pycache__/
 *.pyc
-data/cache/*_weekend-feed.json
+
+# NASCAR feed downloads (~650 files). The app only needs data/races.csv, models/ and
+# reports/; the build scripts re-download anything missing from the cache.
+data/cache/
+
+# Editor / OS clutter
 .vscode/
 .idea/
 Thumbs.db
