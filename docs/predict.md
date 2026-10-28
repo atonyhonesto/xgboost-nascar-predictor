@@ -1,33 +1,34 @@
-# predict.py: command-line forecast
+# A forecast in your terminal (`predict.py`)
 
-The terminal version of the dashboard's Forecast tab. Run `train.py` once first,
-because this script loads the saved models from `models/`.
+If you'd rather not open the dashboard, this gives you the same forecast as text.
+It uses the models saved by `train.py`, so run that once first.
 
-## Usage
+## Using it
 
+**Before qualifying,** when nobody knows the start position yet:
 ```powershell
-# Before qualifying: a table of the forecast at every start position
 .venv\Scripts\python predict.py
-
-# After qualifying: pull Larson's start and speeds from NASCAR's feed
-.venv\Scripts\python predict.py --auto
-
-# Or type them in
-.venv\Scripts\python predict.py --start 12 --qual-speed 181.2 --pole-speed 182.4
-
-# Use the enriched model set instead of core
-.venv\Scripts\python predict.py --start 12 --features enriched
 ```
+You get a table of the forecast for every spot on the grid.
 
-| Option | Meaning |
-|---|---|
-| `--start N` | Starting position |
-| `--qual-speed MPH` | Larson's qualifying speed |
-| `--pole-speed MPH` | The pole winner's speed. Both speeds are needed to compute the qualifying gap |
-| `--auto` | Read the lineup from NASCAR's weekend feed. If it isn't posted yet, the script falls back to the full start-position table |
-| `--features core\|enriched` | Which saved model set to use (default `core`) |
+**After qualifying,** let it look up the lineup for you:
+```powershell
+.venv\Scripts\python predict.py --auto
+```
+If NASCAR hasn't posted the lineup yet, it says so and shows the full table instead.
 
-## Example
+**Or type the numbers in yourself:**
+```powershell
+.venv\Scripts\python predict.py --start 12 --qual-speed 181.2 --pole-speed 182.4
+```
+`--start` is the starting position. The two speeds (the car's and the pole
+winner's, in mph) are used together to work out how far off pole it was. If you
+give only one, it's ignored.
+
+**To try the enriched model** instead of the default `core` one, add
+`--features enriched`.
+
+## What you'll see
 
 ```
 Kyle Larson, Talladega, 2026-10-25  [core features]
@@ -44,8 +45,18 @@ Kyle Larson, Talladega, 2026-10-25  [core features]
 Backtest: these models do not yet beat his plain averages. See reports/metrics.csv.
 ```
 
-`+` means the feature pushed the top-10 chance up, `-` means down (SHAP values from XGBoost).
+The numbers in brackets are his plain track history, so you can see how far the
+model has moved away from it. In the list of influences, **+** means that factor
+nudged the top-10 chance up and **−** means it pulled it down. "not set" means that
+input was missing.
 
-## Where the race details come from
-`NEXT_RACE` and `NEXT_RACE_ID` in `enrich.py` define the race being forecast (date,
-team, field size, NASCAR race ID 5631). Update both for the next Talladega race.
+That last line is a reminder that the model hasn't yet proven it beats the simple
+average.
+
+## Which race it forecasts
+
+The race details come from `NEXT_RACE` and `NEXT_RACE_ID` in `enrich.py`: the date,
+team, field size and NASCAR's race ID. It's currently spring 2027, which has no race ID
+until NASCAR publishes the 2027 schedule, so `--auto` will say the lineup isn't
+available yet. Update both
+when you move on to the next Talladega race.

@@ -1,0 +1,33 @@
+metric,model,baseline,baseline_name,model_better,races,track_type
+Rank correlation with the result (higher is better),0.5511959678164665,0.4324841126780184,starting grid,True,19,short
+Rank correlation with the result (higher is better),0.5511959678164665,0.4185105595707815,recent form (last 5 finishes),True,19,short
+Predicted top 10 that finished top 10 (of 10),5.894736842105263,4.842105263157895,starting grid,True,19,short
+Predicted top 10 that finished top 10 (of 10),5.894736842105263,4.947368421052632,recent form (last 5 finishes),True,19,short
+Top-10 log loss (lower is better),0.49653691717880805,0.5281211404149287,driver's recent top-10 rate,True,19,short
+Top-10 Brier score (lower is better),0.1640299342291372,0.17389131834702418,driver's recent top-10 rate,True,19,short
+Win log loss (lower is better),0.11175272692391967,0.12369559247334849,everyone equal,True,19,short
+DNF Brier score (lower is better),0.09056104384724187,0.09482422050003605,field DNF rate,True,19,short
+Rank correlation with the result (higher is better),0.45841525526792576,0.4064574296879197,starting grid,True,29,intermediate
+Rank correlation with the result (higher is better),0.45841525526792576,0.33118474003224135,recent form (last 5 finishes),True,29,intermediate
+Predicted top 10 that finished top 10 (of 10),5.172413793103448,4.931034482758621,starting grid,True,29,intermediate
+Predicted top 10 that finished top 10 (of 10),5.172413793103448,4.620689655172414,recent form (last 5 finishes),True,29,intermediate
+Top-10 log loss (lower is better),0.5041151519391827,0.5206867180440898,driver's recent top-10 rate,True,29,intermediate
+Top-10 Brier score (lower is better),0.16765685537190084,0.17353479162873728,driver's recent top-10 rate,True,29,intermediate
+Win log loss (lower is better),0.11145852053360407,0.12281241593844258,everyone equal,True,29,intermediate
+DNF Brier score (lower is better),0.10807061730945822,0.10948152619917162,field DNF rate,True,29,intermediate
+Rank correlation with the result (higher is better),0.09252749435927825,0.12084060107166654,starting grid,False,12,superspeedway
+Rank correlation with the result (higher is better),0.09252749435927825,0.10887928796058843,recent form (last 5 finishes),False,12,superspeedway
+Predicted top 10 that finished top 10 (of 10),3.0833333333333335,2.6666666666666665,starting grid,True,12,superspeedway
+Predicted top 10 that finished top 10 (of 10),3.0833333333333335,2.75,recent form (last 5 finishes),True,12,superspeedway
+Top-10 log loss (lower is better),0.5474180778505181,0.6122729247215385,driver's recent top-10 rate,True,12,superspeedway
+Top-10 Brier score (lower is better),0.18330591176470587,0.20460109163057236,driver's recent top-10 rate,True,12,superspeedway
+Win log loss (lower is better),0.11424374711409617,0.11766823486572606,everyone equal,True,12,superspeedway
+DNF Brier score (lower is better),0.1866130336134454,0.1879002077374181,field DNF rate,True,12,superspeedway
+Rank correlation with the result (higher is better),0.4637750002255778,0.43417211516698034,starting grid,True,10,road
+Rank correlation with the result (higher is better),0.4637750002255778,0.2774456525706662,recent form (last 5 finishes),True,10,road
+Predicted top 10 that finished top 10 (of 10),4.8,5.1,starting grid,False,10,road
+Predicted top 10 that finished top 10 (of 10),4.8,3.9,recent form (last 5 finishes),True,10,road
+Top-10 log loss (lower is better),0.5172757779501398,0.6093293547795446,driver's recent top-10 rate,True,10,road
+Top-10 Brier score (lower is better),0.17218297347480108,0.2057139746365349,driver's recent top-10 rate,True,10,road
+Win log loss (lower is better),0.10817821956728883,0.12243435033301563,everyone equal,True,10,road
+DNF Brier score (lower is better),0.0680318023872679,0.07098783981708105,field DNF rate,True,10,road

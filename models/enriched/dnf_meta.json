@@ -24,6 +24,6 @@
     "hist_mean_pit_road_pos_net",
     "hist_mean_incident_notes"
   ],
-  "fallback": 0.30434782608695654,
+  "fallback": 0.2916666666666667,
   "fitted": true
 }

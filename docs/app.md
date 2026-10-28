@@ -1,81 +1,89 @@
-# app.py: the dashboard
+# The app (`app.py`)
 
-On screen the app refers to the car, not the driver: **"5 Car"**, built from
-`NEXT_RACE["car_number"]` in `enrich.py` (the `CAR` constant at the top of `app.py`).
-The history is still the driver's: his pre-2021 races were in the #42 Chip Ganassi
-car, and the Race history tab says so.
+The web page everyone sees: every car's chances in the next NASCAR Cup race, a
+closer look at any car, and an honest account of how good the model is.
 
-A Streamlit web app for exploring the forecast. Start it with `run_app.bat` or
-`.venv\Scripts\streamlit run app.py`. It opens at <http://localhost:8501>.
+To open it, run `.venv\Scripts\streamlit run app.py` (or double-click `run_app.bat`
+on Windows). It opens at <http://localhost:8501>. The live copy is at
+[xgboost-nascar-predictor.streamlit.app](https://xgboost-nascar-predictor.streamlit.app).
 
-The app trains its models in memory each time it starts, using the same code as
-`train.py` (see [model.md](model.md)). Training takes about a second, so it doesn't
-need `train.py` to have run first. Results are cached while the app stays open.
+## How it decides what to show
 
-## Sidebar: race inputs
+1. **It finds the next race** on NASCAR's published schedule: the first points race
+   after the last one in `data/races.csv`.
+2. **It shows the saved forecast** from `race_train.py` if there is one for that race.
+   That's quick, and every visitor sees the same numbers.
+3. **Refresh from NASCAR** (top right) re-reads the entry list and, once qualifying is
+   done, the real starting grid, then simulates the race 10,000 times live. Use it in
+   race week, especially after qualifying.
 
-| Control | What it does |
-|---|---|
-| **Pull lineup from NASCAR** | Reads Larson's start position, qualifying speed and pole speed from NASCAR's weekend feed. Before qualifying it reports *"Lineup not posted yet"*. |
-| **Start position** | The grid slot to forecast for (1 to field size). |
-| **Include qualifying speeds** | When ticked, enter Larson's qualifying speed and the pole speed. The app turns them into *qualifying gap to pole (%)*. Leave it unticked if there were no time trials. |
-| **Feature set** | `core` (15 features, 2014 on) or `enriched` (23 features, adding 2021-on lap/pit/notes history). |
+If NASCAR hasn't posted an entry list yet, the page says so. If there's no race on the
+schedule at all (between seasons), it says that too.
 
-## Banner
+The line under the race name says how many cars are entered, whether the grid is set,
+and whether the forecast is the saved one or a live refresh. **Until the grid is set,
+each batch of simulations draws a random grid,** so the uncertainty about where
+everyone starts is part of the forecast.
 
-A blue note under the title says how many of the five backtest scores the model wins.
-It stays visible because with 23 races the honest answer is currently **0 of 5**.
+## The four tabs
 
-## Tabs
+### Race forecast
 
-### Forecast
-- **Three tiles:** top-10 chance, DNF chance and expected finish. The small badge
-  compares each to the plain track history ("vs track history"). Green means better for Larson,
-  red means worse. A higher DNF chance or a higher (worse) finish number shows red.
-- **Chances by start position:** the top-10 and DNF probabilities across every grid
-  slot, holding everything else fixed. The dotted line marks the slot chosen in the
-  sidebar. Flat stretches mean the model found no reliable link to start position.
-- **What moves the top-10 chance:** SHAP contributions from XGBoost. Each bar shows
-  how much one feature pushed *this* forecast up (blue) or down (red), in log-odds.
-  The label shows the feature's value for this race; "not set" means missing.
+- **Three tiles:** the favourite to win, the car most likely to finish top 10, and
+  "how open is it?": the favourite's win chance against an even split of the field.
+- **Where each car is likely to finish:** one line per car, sorted by expected finish.
+  The dot is the expected finish and the pale bar covers the middle 80% of simulated
+  finishes. The car you pick in *Driver view* is shown in orange.
+- **Every car's chances:** start, expected finish, and the chance of a win, top 3,
+  top 5, top 10 and DNF. The progress bars are scaled per column so the differences
+  are easy to see, and the numbers are the real chances.
 
-### Race history
-- **Start and finish, every Talladega race:** a grey dot for the start, a blue dot for
-  the finish, and a red **×** when he didn't finish. Position 1 is at the top. The
-  shaded band is the top 10.
-- **Share of laps inside the top 10 (2021 on):** from NASCAR's lap feed. Hover a bar
-  to see his finish in that race.
-- A table of start, finish, status, laps led and driver rating.
+### Driver view
 
-### Backtest
-- **Model vs baseline table:** Brier score and log loss for the two probability
-  models, and mean absolute error for finish position. Lower is better.
-- **Chart:** pick a target. The blue line is the model's prediction made *before*
-  each race, and the dashed grey line is the baseline. For top 10 and DNF, stars mark
-  the races where it happened. A useful model puts the stars above the baseline line.
-- An expander holds the raw race-by-race numbers.
+Pick any car in the race.
+
+- **Five tiles:** win, top 5, top 10, expected finish, DNF.
+- **Where they finished in 10,000 simulations:** the full spread of outcomes, position
+  by position. Finishes at the very back include simulated DNFs.
+- **What the model sees:** SHAP values from the ranker, showing which factors push this
+  car up the order (blue) or back (red), with each factor's value. Before the grid is
+  set, the car is explained from a mid-field start, because "unknown" isn't something
+  the model has learned from.
+- **Recent form:** the last 10 races, with DNFs marked by a red **×**.
+- **At this track:** every start here since 2018, with a quick summary.
+
+### How good is it?
+
+- **The scorecard:** the 70-race walk-forward backtest against simple baselines (the
+  starting grid, recent form, the driver's recent top-10 rate, everyone equal), saying
+  plainly whether the model won each one.
+- **By kind of track:** rank correlation for XGBoost and the starting grid on short
+  tracks, intermediates, superspeedways and road courses.
+- **Are the top-10 chances honest?** is a calibration chart. Points on the dashed line
+  mean "a 30% chance" really happens about 30% of the time.
+- **What the ranker relies on:** feature importance (gain).
+- **Look back at a past race:** pick any of the 70 races to see the forecast as it would
+  have been made beforehand, next to the real result.
 
 ### Data
-The full model table, with a **Download CSV** button. The last row is the race being
-predicted.
 
-## Chart colours
+The full table of every car in every race since 2018 (the latest 500 rows on screen,
+all of them in the download), and the exact model inputs for this race's entry list.
 
-Colours come from a validated, colour-blind-safe reference palette:
+## Colours
 
-| Use | Colour |
-|---|---|
-| Top-10 / model / finish (running) | blue `#2a78d6` |
-| DNF chance / actual outcomes | orange `#eb6834` |
-| Start position / baseline / reference lines | muted grey `#898781` |
-| DNF finish marker | critical red `#d03b3b`, always drawn as an **×** with a legend label |
-| Contributions | blue (raises) / red `#e34948` (lowers) |
+From a colour-blind-safe palette, and colour is never the only clue: every series has
+a legend, and DNFs get their own **×** marker.
 
-Colour never carries meaning alone: every series has a legend or direct label, and
-DNFs use a distinct marker shape.
+- **Blue** (`#2a78d6`): the model's forecasts and the main bars
+- **Orange** (`#eb6834`): the car picked in Driver view
+- **Black diamond:** a car's real finish in a past race
+- **Grey** (`#898781`): baselines and reference lines
+- **Red** (`#d03b3b`): a DNF (always an **×**), and factors that push a car back
 
-## Editing tips
-- Friendly feature names live in `FEATURE_NAMES` at the top of the file. Add an entry
-  when you add a feature in `model.py`.
-- `style()` applies the shared chart layout (fonts, margins, gridlines, legend).
-- The race being forecast comes from `NEXT_RACE` / `NEXT_RACE_ID` in `enrich.py`.
+## Changing things
+
+- **Feature names** shown in the charts live in `FEATURE_NAMES` at the top of `app.py`.
+- **Chart look:** `style()` sets the shared fonts, margins, gridlines and legend.
+- **Two shared charts:** `finish_range_chart()` and `chances_table()` are used for both
+  the next race and past races.

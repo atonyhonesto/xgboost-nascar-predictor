@@ -2,7 +2,7 @@
 
 Run train.py first. Then, before qualifying:
   python predict.py                        # forecast at every start position
-After qualifying (Sat Oct 24):
+After qualifying:
   python predict.py --auto                 # pull start position + speeds from NASCAR's feed
   python predict.py --start 12 --qual-speed 181.2 --pole-speed 182.4
 Options:

@@ -1,0 +1,29 @@
+{
+  "features": [
+    "start_pct_field",
+    "qual_gap_to_pole_pct",
+    "track_type",
+    "track_miles",
+    "make",
+    "playoff",
+    "career_starts",
+    "form_fin",
+    "form_rating",
+    "form_run_pos",
+    "form_top10",
+    "form_dnf",
+    "season_rating",
+    "trk_starts",
+    "trk_mean_fin",
+    "trk_mean_rating",
+    "trk_top10_rate",
+    "type_mean_fin",
+    "type_mean_rating",
+    "type_top15_laps",
+    "team_form_fin",
+    "team_form_rating"
+  ],
+  "temperature": 1.0,
+  "trained_races": 322,
+  "trained_through": "2026-10-25"
+}

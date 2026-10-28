@@ -1,44 +1,74 @@
-# fetch_nascar.py: NASCAR data feeds
+# Getting NASCAR's data (`fetch_nascar.py`)
 
-Downloads and caches NASCAR's public JSON feeds at `https://cf.nascar.com/cacher/`.
-These are the same feeds the [pynascar](https://github.com/ab5525/pynascar) library
-wraps. No API key is needed.
+NASCAR publishes a surprising amount of race data as public JSON files at
+`https://cf.nascar.com/cacher/`. These are the same feeds the
+[pynascar](https://github.com/ab5525/pynascar) library uses. You don't need an
+account or an API key. This file downloads them and saves a copy, so each one is
+only fetched once.
 
+To see which data exists for every Talladega race:
 ```powershell
-.venv\Scripts\python fetch_nascar.py     # prints which feeds exist for each Talladega race
+.venv\Scripts\python fetch_nascar.py
 ```
 
-## Feeds used
+## What's available
 
-| Feed | URL pattern | Contents | Seasons |
-|---|---|---|---|
-| Schedule | `/{year}/race_list_basic.json` | Every race that year, with `race_id` | 2015 on |
-| Lap times | `/{year}/1/{race_id}/lap-times.json` | Every car's time and running position on every lap | 2020 on |
-| Pit stops | `/{year}/1/{race_id}/live-pit-data.json` | Each stop: duration, type, positions gained or lost | 2020 on |
-| Race notes | `/{year}/1/{race_id}/lap-notes.json` | Race-control notes by lap (cautions, incidents, penalties) | 2020 on |
-| Weekend | `/{year}/1/{race_id}/weekend-feed.json` | Entry list, then the lineup after qualifying, then results | current race |
+- **The schedule** (`/{year}/race_list_basic.json`) lists every race in a season,
+  with the race IDs needed for everything else. It's available from 2015.
+- **Lap times** (`/{year}/1/{race_id}/lap-times.json`) give every car's time and
+  position on every single lap.
+- **Pit stops** (`/{year}/1/{race_id}/live-pit-data.json`) cover each stop: how long
+  it took, what was done, and places gained or lost.
+- **Race notes** (`/{year}/1/{race_id}/lap-notes.json`) are race control's running
+  commentary: cautions, incidents, penalties.
+- **The weekend feed** (`/{year}/1/{race_id}/weekend-feed.json`) starts as an entry
+  list, becomes the starting lineup after qualifying, and ends up as **every car's
+  result**: finish, status, laps, team, make, qualifying and stage results. Results
+  are available from 2018.
+- **Loop data** (`https://cf.nascar.com/loopstats/prod/{year}/1/{race_id}.json`) gives
+  every driver's rating, running positions and passing numbers, keyed by NASCAR's
+  `driver_id` rather than car number. It's available from 2019.
 
-Older races return HTTP 403, which the code treats as "no file". The `1` in the URL
-is the Cup series. Talladega's `track_id` is 82.
+Lap times, pit stops and race notes only exist from **2020 onwards**. Ask for an
+older race and NASCAR answers "403 Forbidden," which the code treats as "no data."
+The `1` in each address means the Cup Series, and Talladega's track ID is 82.
 
-## Functions
+## The functions
 
-| Function | Returns |
-|---|---|
-| `get_json(url, cache_path, refresh=False)` | Parsed JSON, read from `data/cache/` when present. `None` if the feed doesn't exist |
-| `talladega_races(year)` | Talladega Cup races that year: `race_id`, name, date, spring/fall |
-| `fetch_race(year, race_id)` | `{"lap-times": ..., "live-pit-data": ..., "lap-notes": ...}` |
-| `weekend_feed(year, race_id)` | The weekend feed, always re-downloaded because it changes all weekend |
-| `starting_info(year, race_id, car)` | `{"start_position", "qualifying_speed", "pole_speed", "field_size"}` for one car once the lineup is posted, otherwise `None` |
+- **`get_json(url, cache_path)`** fetches a feed, or reads the saved copy if there
+  is one. It returns `None` if the feed doesn't exist.
+- **`talladega_races(year)`** lists that year's Talladega Cup races, with race ID,
+  name, date and whether it's the spring or fall race.
+- **`fetch_race(year, race_id)`** gets the lap, pit and notes feeds for one race in one go.
+- **`weekend_feed(year, race_id)`** gets the weekend feed. It always downloads a
+  fresh copy, because the feed keeps changing over a race weekend.
+- **`race_results(year, race_id)`** gets every car's result for a finished race. It's
+  saved once the race has been run, and gives `None` for a race that hasn't happened.
+  Only the parts that are used (the results, stage results and race details) are kept,
+  because the full weekend feed is several times bigger.
+- **`loop_stats(year, race_id)`** gets every driver's loop data, or `None`.
+- **`starting_info(year, race_id, car)`** is the one the "Pull lineup" button uses.
+  Once the lineup is posted, it returns the car's start position, qualifying speed,
+  the pole speed and the field size. Before that, or when the race has no ID yet, it
+  returns `None`.
 
-## Cache
-Finished races never change, so their feeds are saved in `data/cache/` and reused.
-Delete a file there to force a fresh download. The weekend feed is never cached.
+## The saved copies
 
-## Quirks found while building this
-- The 2017 schedule file serves 2018's races, so races are filtered by date.
-- Before qualifying, the weekend feed lists the entry with `starting_position = 0`.
-- Races without time trials (e.g. spring 2026) have a lineup but `pole_winner_speed = 0`.
-  The qualifying gap is then left blank.
-- The first block of the pit feed is the starting grid, with zero or −1 placeholders.
-  These rows are skipped.
+A finished race never changes, so its feeds are saved in `data/cache/` and reused.
+The folder isn't in the GitHub repo, so a fresh copy of the project downloads it on
+first use.
+If you ever want a fresh download, delete the file. The live weekend feed is never
+saved, because it keeps changing over a race weekend. Once a race is over,
+`race_results()` saves its final results as `*_results.json`.
+
+## Quirks worth knowing
+
+Real-world data always has a few surprises. These are the ones found here:
+- **The 2017 schedule file actually lists 2018's races.** Races are matched by
+  date, so this doesn't cause problems.
+- **Before qualifying,** the weekend feed lists every car with a start position of
+  0. That's how the code knows the lineup isn't out yet.
+- **Races without time trials,** like spring 2026, have a lineup but a pole speed
+  of 0. The qualifying gap is then left blank rather than calculated from a zero.
+- **The pit feed opens with a block of placeholder rows** from the starting grid,
+  full of zeros and −1s. These are skipped.

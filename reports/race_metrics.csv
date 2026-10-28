@@ -1,0 +1,9 @@
+metric,model,baseline,baseline_name,model_better,races
+Rank correlation with the result (higher is better),0.42164065322642613,0.36851817094802614,starting grid,True,70
+Rank correlation with the result (higher is better),0.42164065322642613,0.30913106104495636,recent form (last 5 finishes),True,70
+Predicted top 10 that finished top 10 (of 10),4.957142857142857,4.542857142857143,starting grid,True,70
+Predicted top 10 that finished top 10 (of 10),4.957142857142857,4.285714285714286,recent form (last 5 finishes),True,70
+Top-10 log loss (lower is better),0.5117466871465596,0.5517435111901506,driver's recent top-10 rate,True,70
+Top-10 Brier score (lower is better),0.17014498829747074,0.18379193590380033,driver's recent top-10 rate,True,70
+Win log loss (lower is better),0.11157067542449366,0.12206996402689839,everyone equal,True,70
+DNF Brier score (lower is better),0.11181251557191392,0.11418234066382559,field DNF rate,True,70

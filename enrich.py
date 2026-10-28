@@ -22,16 +22,17 @@ from fetch_nascar import fetch_race, talladega_races
 DATA = Path(__file__).parent / "data"
 
 # The race being predicted. Start position and qualifying speed stay blank until
-# qualifying (Sat Oct 24); predict.py takes them as inputs.
+# qualifying; predict.py and the app take them as inputs.
 NEXT_RACE = {
-    "season": 2026, "race_date": "2026-10-25", "season_half": "fall", "playoff_race": "Y",
+    "season": 2027, "race_date": "2027-04-25", "season_half": "spring", "playoff_race": "N",
     "team": "Hendrick Motorsports", "manufacturer": "Chevrolet", "crew_chief": "Cliff Daniels",
     "car_number": "5", "field_size": 40, "car_gen": "gen7",
-    # Assumed carried over from spring 2026; confirm against Goodyear's race-week notes.
-    "tire_left_code": "D-5142", "tire_right_code": "D-5218",
 }
-
-NEXT_RACE_ID = 5631  # cf.nascar.com race_id for the race above; used to pull the lineup
+# NASCAR hadn't published the 2027 schedule feed yet (checked 2026-10-28), so the date
+# above is an estimate (Talladega's spring race is usually late April) and there is no
+# race_id. Set both once race_list_basic.json for 2027 exists.
+NEXT_RACE_DATE_CONFIRMED = False
+NEXT_RACE_ID = None  # cf.nascar.com race_id for the race above; used to pull the lineup
 
 LATE_RACE_SHARE = 0.20   # final fifth of the laps, where Talladega is usually decided
 MAX_SERVICE_STOP_SEC = 30  # longer stops are damage repair, not crew speed

@@ -1,0 +1,24 @@
+{
+  "features": [
+    "start_pct_field",
+    "qual_gap_to_pole_pct",
+    "is_playoff",
+    "is_gen7",
+    "make",
+    "drv_starts",
+    "drv_prev_fin",
+    "drv_mean_fin",
+    "drv_top10_rate",
+    "drv_dnf_rate",
+    "drv_prev_rating",
+    "drv_mean_rating",
+    "drv_mean_run_pos",
+    "drv_mean_pct_laps_top10",
+    "drv_mean_laps_led",
+    "team_mean_fin",
+    "team_mean_rating",
+    "team_top10_rate"
+  ],
+  "temperature": 0.6,
+  "trained_races": 18
+}

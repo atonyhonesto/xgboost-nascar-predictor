@@ -16,6 +16,6 @@
     "hist_dnf_rate",
     "hist_crash_rate"
   ],
-  "fallback": 0.21739130434782608,
+  "fallback": 0.25,
   "fitted": true
 }

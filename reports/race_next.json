@@ -1,0 +1,12 @@
+{
+  "season": 2026,
+  "race_id": 5632,
+  "race_date": "2026-11-01",
+  "race_name": "Xfinity 500",
+  "track_id": 22,
+  "track": "Martinsville Speedway",
+  "track_miles": 0.526,
+  "track_type": "short",
+  "scheduled_laps": 500,
+  "playoff": 1
+}

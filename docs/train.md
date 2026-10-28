@@ -1,49 +1,63 @@
-# train.py: backtest and save the models
+# Training and testing (`train.py`)
 
 ```powershell
 .venv\Scripts\python train.py
 ```
 
-For **each feature set** (`core`, then `enriched`) it:
+This is the script that answers the big question: **is the model any good?** It
+takes a few seconds.
 
-1. Runs the walk-forward backtest (see [model.md](model.md#the-backtest)) on the last
-   15 races and prints model vs baseline scores.
-2. Trains the final top-10, DNF and finish models on **all** completed races.
-3. Prints the features the top-10 model relies on most (share of total gain).
+For each of the two feature sets (`core`, then `enriched`) it:
 
-It takes a few seconds.
+1. **Tests the model race by race.** For each of the last 15 races, it trains only
+   on the races before it, predicts that race, and compares the result with "his
+   average so far." (The details are in [model.md](model.md#how-the-model-is-tested).)
+2. **Trains the final models** on every completed race, ready for the upcoming one.
+3. **Lists what the top-10 model relies on most**, as each feature's share of the
+   total gain.
 
-## Outputs
+## What it saves
 
-| Path | Contents |
-|---|---|
-| `models/core/`, `models/enriched/` | `top10.json`, `dnf.json`, `finish.json` (XGBoost's native format) plus a `*_meta.json` for each, with the feature list and base rate |
-| `reports/backtest_core.csv`, `reports/backtest_enriched.csv` | One row per backtested race: actual outcome, model prediction (`pred_*`) and baseline (`base_*`) |
-| `reports/metrics.csv` | The score table for both feature sets |
+- **`models/core/` and `models/enriched/`:** the trained models in XGBoost's own
+  JSON format (`top10.json`, `dnf.json`, `finish.json`). Each has a small
+  `*_meta.json` beside it with the feature list and the fallback average.
+- **`reports/backtest_core.csv` and `reports/backtest_enriched.csv`:** one row per
+  tested race, showing what really happened, what the model said (`pred_*`) and what
+  the baseline said (`base_*`).
+- **`reports/metrics.csv`:** the scorecard for both feature sets.
 
-`predict.py` reads `models/`. The dashboard trains its own copy in memory, so it
-doesn't depend on these files.
+`predict.py` uses the saved models. The dashboard trains its own copy each time it
+starts, so it doesn't need these files.
 
-## Example output (Oct 21, 2026)
+## What you'll see
+
+Here's the output from Oct 28, 2026, with the Oct 25 race included:
 
 ```
 == core features (15) - lower is better
 target   metric  model  baseline  model_better
- top10    brier  0.203     0.171         False
- top10 log_loss  0.633     0.537         False
-   dnf    brier  0.332     0.288         False
-   dnf log_loss  0.898     0.803         False
-finish      mae 12.968    12.898         False
-  Top-10 model leans most on: hist_mean_rating (64%), prev_rating (19%), qual_gap_to_pole_pct (7%), ...
+ top10    brier  0.204     0.198         False
+ top10 log_loss  0.634     0.599         False
+   dnf    brier  0.322     0.276         False
+   dnf log_loss  0.874     0.776         False
+finish      mae 12.848    13.405          True
+  Top-10 model leans most on: hist_mean_rating (62%), qual_gap_to_pole_pct (21%), prev_rating (15%), ...
 ```
 
-## Reading the result
-- **`model_better = False` everywhere** means that, so far, "his average so far"
-  predicts as well as XGBoost or better. With 23 races and pack-racing crashes, that
-  is expected. It is not a bug.
-- The model mostly uses **driver rating history**. Start position barely matters at
-  Talladega, which matches how superspeedway racing works.
+## How to read it
 
-## When to re-run
-- After adding a new race result (run `enrich.py` first).
-- After changing features or `XGB_PARAMS` in `model.py`.
+**The finishing-position model now beats the simple average,** missing by 12.8
+positions on average against 13.4. **The top-10 and DNF models still don't.** With
+24 races at a track where crashes decide so much, that's the expected answer, not a
+bug. It's useful to know, and it's the kind of thing plenty of projects never check.
+It's also why version 2 learns from every car in the field instead
+(see [field_train.md](field_train.md)).
+
+**It leans mostly on driver rating history,** and hardly at all on start position.
+That matches what anyone who watches superspeedway racing would tell you: starting
+spot barely matters when the whole field runs in a pack.
+
+## When to run it again
+
+- After you add a new race result (run `enrich.py` first).
+- After you change the features or `XGB_PARAMS` in `model.py`.
