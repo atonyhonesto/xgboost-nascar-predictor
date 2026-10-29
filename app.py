@@ -24,6 +24,9 @@ POS, NEG = "#2a78d6", "#e34948"  # diverging poles for SHAP contributions
 CRITICAL = "#d03b3b"             # DNF, always paired with an x marker + label
 GRID = "rgba(137,135,129,0.25)"
 
+LINKEDIN_URL = "https://www.linkedin.com/in/tony-honesto-4195023"
+GITHUB_URL = "https://github.com/atonyhonesto"
+
 TYPE_LABELS = {"short": "short track", "intermediate": "intermediate oval",
                "superspeedway": "superspeedway", "road": "road course"}
 FEATURE_NAMES = {
@@ -177,6 +180,8 @@ saved_fc, saved_race = get_saved_forecast()
 st.session_state.setdefault("nonce", 0)
 
 st.title("XGBoost NASCAR Predictor")
+st.markdown(f"Built by **Tony Honesto** · [:material/person: LinkedIn]({LINKEDIN_URL}) · "
+            f"[:material/code: GitHub]({GITHUB_URL})")
 if race is None:
     st.info("There's no upcoming Cup race on NASCAR's published schedule yet. The model's track record "
             "is under *How good is it?*.")
