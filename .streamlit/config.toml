@@ -1,0 +1,22 @@
+# App look: deep maroon and racing gold with a fiery orange accent.
+# Light and dark both defined; viewers can switch in the app's Settings menu.
+
+[theme]
+headingFontWeights = [800, 700, 700, 600, 600, 600]
+baseRadius = "small"
+
+[theme.light]
+primaryColor = "#8c1d40"
+linkColor = "#8c1d40"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f7f1ea"
+textColor = "#1c1416"
+borderColor = "#e4d6cc"
+
+[theme.dark]
+primaryColor = "#f2b21b"
+linkColor = "#f2b21b"
+backgroundColor = "#141012"
+secondaryBackgroundColor = "#24191d"
+textColor = "#f5efe9"
+borderColor = "#3a2a30"
