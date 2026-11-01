@@ -8,6 +8,7 @@ starting grid once qualifying is done) and re-simulates the race live.
 
 Tabs: Race forecast · Driver view · How good is it? · Data
 """
+import html
 import json
 
 import numpy as np
@@ -18,14 +19,110 @@ import streamlit as st
 import race_model as rm
 from race_data import entry_rows, next_race, upcoming_rows
 
-# Chart palette (validated, colour-blind-safe reference palette; see docs/app.md).
-BLUE, ORANGE, MUTED, INK = "#2a78d6", "#eb6834", "#898781", "#0b0b0b"
-POS, NEG = "#2a78d6", "#e34948"  # diverging poles for SHAP contributions
-CRITICAL = "#d03b3b"             # DNF, always paired with an x marker + label
+# Chart palette (validated for colour-blind separation on both the light and dark
+# surfaces; see docs/app.md). ACCENT is the brand maroon, lifted so it reads in dark mode.
+BLUE, ACCENT, MUTED, INK = "#2a78d6", "#c03a5f", "#898781", "#0b0b0b"
+POS, NEG = BLUE, ACCENT          # diverging poles for SHAP contributions
+CRITICAL = "#d03b3b"             # DNF only, always paired with an x marker + label
 GRID = "rgba(137,135,129,0.25)"
 
 LINKEDIN_URL = "https://www.linkedin.com/in/tony-honesto-4195023"
 GITHUB_URL = "https://github.com/atonyhonesto"
+
+# Page styling: deep maroon, racing gold and a fiery orange sweep, slanted racing type.
+# Theme colours for Streamlit's own widgets live in .streamlit/config.toml. Everything here
+# uses translucent fills or fixed-colour blocks, so it reads in both light and dark mode.
+STYLE = """
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@1,600;1,700;1,800&display=swap');
+:root { --maroon: #8c1d40; --rose: #c03a5f; --gold: #f2b21b; --flame: #d9480f; --night: #141012;
+        --race: 'Barlow Condensed', 'Arial Narrow', sans-serif; }
+
+/* Banner */
+.hero { position: relative; overflow: hidden; border-radius: 6px; padding: 22px 28px 30px;
+        background: linear-gradient(100deg, #3f0818 0%, var(--maroon) 58%, var(--flame) 100%); }
+.hero::after { content: ""; position: absolute; top: 0; right: -60px; width: min(240px, 35%); height: 100%;
+               background: repeating-linear-gradient(90deg, var(--gold) 0 14px, transparent 14px 30px);
+               opacity: .3; transform: skewX(-24deg); }
+.hero .name { font-family: var(--race); font-style: italic; font-weight: 800; letter-spacing: .5px;
+              line-height: 1; font-size: clamp(2rem, 5vw, 3.2rem); color: #fff; }
+.hero .name span { color: var(--gold); }
+.hero .stripe { height: 4px; width: 130px; margin-top: 10px; background: var(--gold); transform: skewX(-24deg); }
+.hero .by { margin-top: 10px; font-size: .95rem; color: #f7e7c6; }
+.hero .by a { color: var(--gold); font-weight: 600; text-decoration: none; }
+.hero .by a:hover { text-decoration: underline; }
+.hero .checker { position: absolute; left: 0; right: 0; bottom: 0; height: 10px; opacity: .45;
+                 background: conic-gradient(#fff 25%, var(--night) 0 50%, #fff 0 75%, var(--night) 0) 0 0 / 10px 10px; }
+
+/* Section headings: slanted racing type behind a gold-to-flame flag */
+[data-testid="stMain"] h3 { font-family: var(--race); font-style: italic; font-weight: 800; letter-spacing: .3px; }
+[data-testid="stMain"] h3::before { content: ""; display: inline-block; width: 7px; height: .85em; margin-right: 10px;
+    vertical-align: -.08em; background: linear-gradient(180deg, var(--gold), var(--flame)); transform: skewX(-18deg); }
+
+/* Tabs */
+[data-testid="stTab"] p { font-family: var(--race); font-style: italic; font-weight: 700;
+    font-size: 1.15rem; text-transform: uppercase; letter-spacing: .6px; }
+@media (max-width: 640px) { [data-testid="stTab"] p { font-size: .95rem; letter-spacing: .2px; } }
+
+/* Panels around charts and tables: a livery stripe across the top */
+[class*="st-key-panel_"] { position: relative; overflow: hidden; }
+[class*="st-key-panel_"]::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+    background: linear-gradient(90deg, var(--maroon), var(--rose) 55%, var(--gold)); }
+
+/* Stat tiles */
+[data-testid="stMetric"] { border-left: 5px solid var(--rose) !important; }
+[data-testid="stMetricValue"] { font-family: var(--race); font-style: italic; font-weight: 700; }
+[data-testid="stMetricLabel"] p { text-transform: uppercase; letter-spacing: .6px; font-size: .78rem; font-weight: 600; }
+
+/* Race info chips */
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 6px; }
+.chip { font-size: .85rem; padding: 3px 11px; border-radius: 999px; white-space: nowrap;
+        background: rgba(192,58,95,.10); border: 1px solid rgba(192,58,95,.40); }
+.chip.gold { background: rgba(242,178,27,.16); border-color: rgba(242,178,27,.65); }
+.chip.hot { color: #fff; border: none; font-weight: 600;
+            background: linear-gradient(90deg, var(--maroon), var(--flame)); }
+
+/* Driver card */
+.dcard { display: flex; align-items: center; gap: 18px; margin: 6px 0 14px; flex-wrap: wrap; }
+.dnum { font-family: var(--race); font-style: italic; font-weight: 800; font-size: 2.6rem; line-height: 1;
+        color: #fff; padding: 6px 20px 4px; border-radius: 4px; border-bottom: 4px solid var(--gold);
+        background: linear-gradient(120deg, var(--maroon), var(--flame)); transform: skewX(-12deg); }
+.dnum span { display: inline-block; transform: skewX(12deg); }
+.dname { font-family: var(--race); font-style: italic; font-weight: 800; font-size: 2rem; line-height: 1.05; }
+.dmeta { font-size: .9rem; opacity: .75; margin-top: 2px; }
+
+/* Footer */
+.foot { margin-top: 36px; padding-top: 14px; font-size: .85rem; position: relative;
+        display: flex; flex-wrap: wrap; gap: 10px 24px; justify-content: space-between; align-items: center; }
+.foot::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 6px; opacity: .5;
+                background: conic-gradient(#898781 25%, transparent 0 50%, #898781 0 75%, transparent 0) 0 0 / 6px 6px; }
+.foot a { color: var(--rose); font-weight: 600; text-decoration: none; }
+.foot .stack span { font-family: var(--race); font-style: italic; font-weight: 700; letter-spacing: .4px;
+                    padding: 2px 9px; margin-right: 6px; border-radius: 3px; border: 1px solid rgba(137,135,129,.45); }
+.foot .note { opacity: .65; flex-basis: 100%; }
+</style>
+"""
+
+HERO = """
+<div class="hero">
+  <div class="name"><span>XGBoost</span> NASCAR Predictor</div>
+  <div class="stripe"></div>
+  <div class="by">Built by <b>Tony Honesto</b> &middot;
+    <a href="{linkedin}" target="_blank">LinkedIn</a> &middot;
+    <a href="{github}" target="_blank">GitHub</a></div>
+  <div class="checker"></div>
+</div>
+"""
+
+FOOTER = """
+<div class="foot">
+  <div>Built by <b>Tony Honesto</b> &middot; <a href="{linkedin}" target="_blank">LinkedIn</a> &middot;
+       <a href="{github}" target="_blank">GitHub</a></div>
+  <div class="stack"><span>XGBoost</span><span>Monte Carlo</span><span>SHAP</span><span>Plotly</span><span>Streamlit</span></div>
+  <div class="note">An independent fan project using NASCAR's public data feeds. Not affiliated with NASCAR,
+       any team or any sponsor. Forecasts are for fun, not betting advice.</div>
+</div>
+"""
 
 TYPE_LABELS = {"short": "short track", "intermediate": "intermediate oval",
                "superspeedway": "superspeedway", "road": "road course"}
@@ -119,7 +216,7 @@ def finish_range_chart(fc, has_result, highlight=None):
     """One line per car: likely range of finishes, expected finish, and the real result if known."""
     fc = fc.sort_values("exp_finish").reset_index(drop=True)
     names = "#" + fc["car_number"] + " " + fc["driver"]
-    colors = [ORANGE if c == highlight else BLUE for c in fc["car_number"]]
+    colors = [ACCENT if c == highlight else BLUE for c in fc["car_number"]]
     fig = go.Figure()
     fig.add_bar(y=names, x=fc["finish_p90"] - fc["finish_p10"], base=fc["finish_p10"], orientation="h",
                 name="Likely range (80% of simulations)",
@@ -166,6 +263,31 @@ def chances_table(fc, has_result):
     })
 
 
+def panel(key):
+    """A bordered card with a livery stripe across the top (styled in STYLE)."""
+    return st.container(border=True, key=f"panel_{key}")
+
+
+def race_chips(race, grid_known):
+    chips = [f'<span class="chip">{html.escape(c)}</span>' for c in (
+        f"{pd.Timestamp(race['race_date']):%a %b %d, %Y}", f"{race['scheduled_laps']} laps",
+        f"{race['track_miles']:.3g}-mile {TYPE_LABELS[race['track_type']]}")]
+    if grid_known is not None:
+        chips.append('<span class="chip gold">'
+                     + ("Grid set by qualifying" if grid_known else "Random grids until qualifying") + "</span>")
+    if race["playoff"]:
+        chips.append('<span class="chip hot">Playoff race</span>')
+    return '<div class="chips">' + "".join(chips) + "</div>"
+
+
+def driver_card(d, rank, n):
+    start = f" · starts P{int(d['start_position'])}" if pd.notna(d["start_position"]) else ""
+    meta = f"{d['team']} · {d['make']} · ranked {rank} of {n} by expected finish{start}"
+    return (f'<div class="dcard"><div class="dnum"><span>#{html.escape(str(d["car_number"]))}</span></div>'
+            f'<div><div class="dname">{html.escape(str(d["driver"]))}</div>'
+            f'<div class="dmeta">{html.escape(meta)}</div></div></div>')
+
+
 # ---------------------------------------------------------------- the next race
 
 try:
@@ -179,9 +301,9 @@ race = get_next_race(table["race_date"].max())
 saved_fc, saved_race = get_saved_forecast()
 st.session_state.setdefault("nonce", 0)
 
-st.title("XGBoost NASCAR Predictor")
-st.markdown(f"Built by **Tony Honesto** · [:material/person: LinkedIn]({LINKEDIN_URL}) · "
-            f"[:material/code: GitHub]({GITHUB_URL})")
+st.html(STYLE)
+st.html(HERO.format(linkedin=LINKEDIN_URL, github=GITHUB_URL))
+grid_known = None
 if race is None:
     st.info("There's no upcoming Cup race on NASCAR's published schedule yet. The model's track record "
             "is under *How good is it?*.")
@@ -190,13 +312,13 @@ else:
     use_saved = (saved_race is not None and saved_race["race_id"] == race["race_id"]
                  and st.session_state["nonce"] == 0)
     fc = saved_fc if use_saved else live_forecast(json.dumps(race), st.session_state["nonce"])
+    if fc is not None:
+        grid_known = fc["start_position"].notna().all()
 
     head, button = st.columns([4, 1], vertical_alignment="bottom")
     with head:
         st.subheader(f"{race['race_name']} · {race['track']}")
-        st.caption(f"{pd.Timestamp(race['race_date']):%A, %B %d, %Y} · {race['scheduled_laps']} laps · "
-                   f"{race['track_miles']:.3g}-mile {TYPE_LABELS[race['track_type']]}"
-                   + (" · playoff race" if race["playoff"] else ""))
+        st.html(race_chips(race, grid_known))
     with button:
         if st.button("Refresh from NASCAR", width="stretch",
                      help="Re-reads the entry list and, once qualifying is done, the starting grid, "
@@ -208,7 +330,6 @@ else:
         st.warning("NASCAR hasn't posted the entry list for this race yet. Try *Refresh from NASCAR* "
                    "later in race week.")
     else:
-        grid_known = fc["start_position"].notna().all()
         st.write(f"**{len(fc)} cars entered.** "
                  + ("The starting grid is set by qualifying." if grid_known else
                     "The starting grid isn't set yet, so each batch of simulations draws a random grid. "
@@ -236,15 +357,17 @@ with tab_race:
         c3.metric("How open is it?", f"{fav['p_win']:.1%} vs {1 / n:.1%}",
                   "favourite's win chance vs an even split", delta_color="off", delta_arrow="off", border=True)
 
-        st.subheader("Where each car is likely to finish")
-        st.plotly_chart(finish_range_chart(fc, has_result=False, highlight=st.session_state.get("driver")))
-        st.caption("Cars sorted by expected finish. The pale bar covers the middle 80% of simulated finishes. "
-                   "The car picked in *Driver view* is shown in orange.")
+        with panel("finish_range"):
+            st.subheader("Where each car is likely to finish")
+            st.plotly_chart(finish_range_chart(fc, has_result=False, highlight=st.session_state.get("driver")))
+            st.caption("Cars sorted by expected finish. The pale bar covers the middle 80% of simulated "
+                       "finishes. The car picked in *Driver view* is shown in maroon.")
 
-        st.subheader("Every car's chances")
-        chances_table(fc, has_result=False)
-        st.caption("Progress bars are scaled per column so differences are easy to see; the numbers are "
-                   "the actual chances.")
+        with panel("chances"):
+            st.subheader("Every car's chances")
+            chances_table(fc, has_result=False)
+            st.caption("Progress bars are scaled per column so differences are easy to see; the numbers are "
+                       "the actual chances.")
 
 # ---------------------------------------------------------------- driver view
 
@@ -262,17 +385,16 @@ with tab_driver:
         d = row.iloc[0]
         rank = options.index(car) + 1
 
+        st.html(driver_card(d, rank, len(fc)))
         cols = st.columns(5)
         for col, (label, value) in zip(cols, (("Win", f"{d['p_win']:.1%}"), ("Top 5", f"{d['p_top5']:.0%}"),
                                               ("Top 10", f"{d['p_top10']:.0%}"),
                                               ("Expected finish", f"{d['exp_finish']:.1f}"),
                                               ("DNF", f"{d['p_dnf']:.0%}"))):
             col.metric(label, value, border=True)
-        st.caption(f"{d['driver']} · {d['team']} · {d['make']} · ranked {rank} of {len(fc)} by expected finish"
-                   + (f" · starts P{int(d['start_position'])}" if pd.notna(d["start_position"]) else ""))
 
         left, right = st.columns(2)
-        with left:
+        with left, panel("sims"):
             st.subheader("Where they finished in 10,000 simulations")
             pos_cols = [c for c in fc.columns if c.startswith("pos_")][: len(fc)]
             dist = row[pos_cols].iloc[0].to_numpy(dtype=float)
@@ -284,7 +406,7 @@ with tab_driver:
             fig.update_xaxes(tickvals=[1, 5, 10, 15, 20, 25, 30, 35, 40])
             st.plotly_chart(fig)
             st.caption("Finishes at the back include simulated DNFs.")
-        with right:
+        with right, panel("shap"):
             st.subheader("What the model sees")
             shap_row = rm.prepare(row)
             if not grid_known:
@@ -313,48 +435,51 @@ with tab_driver:
             fig.update_xaxes(zeroline=True, zerolinecolor=MUTED, showgrid=True, gridcolor=GRID)
             st.plotly_chart(fig)
             st.caption("SHAP values from the XGBRanker: how much each factor moves this car's score up the "
-                       "order (blue) or down it (red)." + ("" if grid_known else " Until the grid is set, "
+                       "order (blue) or down it (maroon)." + ("" if grid_known else " Until the grid is set, "
                        "this explains the car from a mid-field start."))
 
         hist = table[table["driver_id"] == d["driver_id"]].sort_values("race_date")
-        st.subheader("Recent form: last 10 races")
-        recent = hist.tail(10)
-        if recent.empty:
-            st.write("No Cup races in the data yet.")
-        else:
-            labels = recent["race_date"].str[5:] + " " + recent["track"].str.replace(
-                r" (Motor |International |Super)?(Speedway|Raceway|Race)$", "", regex=True)
-            out = recent["dnf"] == 1
-            fig = go.Figure()
-            fig.add_scatter(x=labels, y=recent["finish_position"], mode="lines", line=dict(color=GRID, width=2),
-                            showlegend=False, hoverinfo="skip")
-            fig.add_scatter(x=labels[~out], y=recent.loc[~out, "finish_position"], mode="markers", name="Finish",
-                            marker=dict(color=BLUE, size=11, line=dict(color="white", width=2)),
-                            customdata=recent.loc[~out, ["start_position"]],
-                            hovertemplate="%{x}: P%{y} (started P%{customdata[0]})<extra></extra>")
-            fig.add_scatter(x=labels[out], y=recent.loc[out, "finish_position"], mode="markers", name="DNF",
-                            marker=dict(color=CRITICAL, size=11, symbol="x"),
-                            customdata=recent.loc[out, ["status"]],
-                            hovertemplate="%{x}: P%{y} (%{customdata[0]})<extra></extra>")
-            fig.add_hrect(y0=0.5, y1=10.5, fillcolor=BLUE, opacity=0.06, line_width=0,
-                          annotation_text="Top 10", annotation_position="top left")
-            style(fig, height=320, y_title="Finish")
-            fig.update_yaxes(range=[41, 0.5], tickvals=[1, 10, 20, 30, 40])
-            st.plotly_chart(fig)
+        with panel("form"):
+            st.subheader("Recent form: last 10 races")
+            recent = hist.tail(10)
+            if recent.empty:
+                st.write("No Cup races in the data yet.")
+            else:
+                labels = recent["race_date"].str[5:] + " " + recent["track"].str.replace(
+                    r" (Motor |International |Super)?(Speedway|Raceway|Race)$", "", regex=True)
+                out = recent["dnf"] == 1
+                fig = go.Figure()
+                fig.add_scatter(x=labels, y=recent["finish_position"], mode="lines", line=dict(color=GRID, width=2),
+                                showlegend=False, hoverinfo="skip")
+                fig.add_scatter(x=labels[~out], y=recent.loc[~out, "finish_position"], mode="markers", name="Finish",
+                                marker=dict(color=BLUE, size=11, line=dict(color="white", width=2)),
+                                customdata=recent.loc[~out, ["start_position"]],
+                                hovertemplate="%{x}: P%{y} (started P%{customdata[0]})<extra></extra>")
+                fig.add_scatter(x=labels[out], y=recent.loc[out, "finish_position"], mode="markers", name="DNF",
+                                marker=dict(color=CRITICAL, size=11, symbol="x"),
+                                customdata=recent.loc[out, ["status"]],
+                                hovertemplate="%{x}: P%{y} (%{customdata[0]})<extra></extra>")
+                fig.add_hrect(y0=0.5, y1=10.5, fillcolor=BLUE, opacity=0.06, line_width=0,
+                              annotation_text="Top 10", annotation_position="top left")
+                style(fig, height=320, y_title="Finish")
+                fig.update_yaxes(range=[41, 0.5], tickvals=[1, 10, 20, 30, 40])
+                st.plotly_chart(fig)
 
         at_track = hist[hist["track_id"] == race["track_id"]]
-        st.subheader(f"At {race['track']}")
-        if at_track.empty:
-            st.write("First Cup start here since 2018.")
-        else:
-            st.caption(f"{len(at_track)} starts since 2018 · average finish {at_track['finish_position'].mean():.1f}"
-                       f" · top 10 in {at_track['top10'].mean():.0%}")
-            show = at_track.sort_values("race_date", ascending=False)[
-                ["race_date", "start_position", "finish_position", "status", "laps_led", "rating"]]
-            st.dataframe(show.rename(columns={"race_date": "Date", "start_position": "Start",
-                                              "finish_position": "Finish", "status": "Status",
-                                              "laps_led": "Laps led", "rating": "Driver rating"}),
-                         hide_index=True, column_config={"Driver rating": st.column_config.NumberColumn(format="%.1f")})
+        with panel("track"):
+            st.subheader(f"At {race['track']}")
+            if at_track.empty:
+                st.write("First Cup start here since 2018.")
+            else:
+                st.caption(f"{len(at_track)} starts since 2018 · average finish "
+                           f"{at_track['finish_position'].mean():.1f} · top 10 in {at_track['top10'].mean():.0%}")
+                show = at_track.sort_values("race_date", ascending=False)[
+                    ["race_date", "start_position", "finish_position", "status", "laps_led", "rating"]]
+                st.dataframe(show.rename(columns={"race_date": "Date", "start_position": "Start",
+                                                  "finish_position": "Finish", "status": "Status",
+                                                  "laps_led": "Laps led", "rating": "Driver rating"}),
+                             hide_index=True,
+                             column_config={"Driver rating": st.column_config.NumberColumn(format="%.1f")})
 
 # ---------------------------------------------------------------- how good is it?
 
@@ -363,20 +488,41 @@ with tab_eval:
         st.warning("Run `python race_train.py` to create the backtest.")
     else:
         bt = reports["backtest"]
+        metrics = reports["metrics"]
         st.subheader("Does it beat simple baselines?")
         st.write(f"Walk-forward test over **{bt['race_id'].nunique()} races since January 2025** "
                  f"({len(bt):,} car entries): before each race, the models were trained only on earlier races, "
                  "then the race was simulated. Each score is compared with a simple baseline, such as the "
                  "starting grid or each driver's recent form.")
-        show = reports["metrics"].drop(columns="races").copy()
-        show["model_better"] = show["model_better"].map({True: "✅ yes", False: "❌ no"})
-        st.dataframe(show.rename(columns={"metric": "Score", "model": "Model", "baseline": "Baseline",
-                                          "baseline_name": "Baseline is", "model_better": "Model better?"}),
-                     hide_index=True, column_config={"Model": st.column_config.NumberColumn(format="%.3f"),
-                                                     "Baseline": st.column_config.NumberColumn(format="%.3f")})
+
+        def pick(prefix, baseline=None):
+            rows = metrics[metrics["metric"].str.startswith(prefix)]
+            if baseline:
+                rows = rows[rows["baseline_name"] == baseline]
+            return rows.iloc[0]
+
+        tiles = (("Rank correlation", pick("Rank", "starting grid"), "{:.2f}", "{:+.2f}", "normal"),
+                 ("Top-10 picks that hit", pick("Predicted top 10", "starting grid"), "{:.1f} of 10", "{:+.1f}",
+                  "normal"),
+                 ("Top-10 log loss", pick("Top-10 log loss"), "{:.3f}", "{:+.3f}", "inverse"),
+                 ("Win log loss", pick("Win log loss"), "{:.3f}", "{:+.3f}", "inverse"))
+        for col, (label, m, fmt, dfmt, colour) in zip(st.columns(4), tiles):
+            col.metric(label, fmt.format(m["model"]), f"{dfmt.format(m['model'] - m['baseline'])} vs {m['baseline_name']}",
+                       delta_color=colour, border=True,
+                       help=f"{m['metric']}. Model {m['model']:.3f}, baseline {m['baseline']:.3f}.")
+        st.caption("For log loss, lower is better, so a negative difference is a win for the model.")
+
+        with panel("metrics"):
+            st.subheader("Every score")
+            show = metrics.drop(columns="races").copy()
+            show["model_better"] = show["model_better"].map({True: "✅ yes", False: "❌ no"})
+            st.dataframe(show.rename(columns={"metric": "Score", "model": "Model", "baseline": "Baseline",
+                                              "baseline_name": "Baseline is", "model_better": "Model better?"}),
+                         hide_index=True, column_config={"Model": st.column_config.NumberColumn(format="%.3f"),
+                                                         "Baseline": st.column_config.NumberColumn(format="%.3f")})
 
         left, right = st.columns(2)
-        with left:
+        with left, panel("by_type"):
             st.subheader("By kind of track")
             bt_type = reports["metrics_by_type"]
             rc = bt_type[bt_type["metric"].str.startswith("Rank") & (bt_type["baseline_name"] == "starting grid")]
@@ -392,7 +538,7 @@ with tab_eval:
             st.plotly_chart(fig)
             st.caption("1 would be a perfect prediction of the finishing order, 0 no better than random. "
                        "Short tracks are the most predictable; superspeedways are close to a lottery.")
-        with right:
+        with right, panel("calibration"):
             st.subheader("Are the top-10 chances honest?")
             cal = reports["calibration"]
             cal = cal[cal["cars"] >= 20]
@@ -412,44 +558,60 @@ with tab_eval:
             st.caption("Cars grouped by predicted top-10 chance (bigger dots, bigger groups). On the dashed "
                        "line, the percentages can be taken at face value.")
 
-        st.subheader("What the ranker relies on")
-        imp = rm.importance(models).head(10).sort_values()
-        fig = go.Figure(go.Bar(x=imp.values, y=[FEATURE_NAMES.get(f, f) for f in imp.index], orientation="h",
-                               marker=dict(color=BLUE, cornerradius=4),
-                               hovertemplate="%{y}: %{x:.0%} of total gain<extra></extra>"))
-        style(fig, height=380, x_title="Share of total gain")
-        fig.update_layout(showlegend=False)
-        fig.update_xaxes(tickformat=".0%", showgrid=True, gridcolor=GRID)
-        fig.update_yaxes(gridcolor="rgba(0,0,0,0)")
-        st.plotly_chart(fig)
-        st.caption(f"Feature importance of the XGBRanker trained on all {meta['trained_races']} races through "
-                   f"{meta['trained_through']}. Simulation temperature: {meta['temperature']}.")
+        with panel("importance"):
+            st.subheader("What the ranker relies on")
+            imp = rm.importance(models).head(10).sort_values()
+            fig = go.Figure(go.Bar(x=imp.values, y=[FEATURE_NAMES.get(f, f) for f in imp.index], orientation="h",
+                                   marker=dict(color=BLUE, cornerradius=4),
+                                   hovertemplate="%{y}: %{x:.0%} of total gain<extra></extra>"))
+            style(fig, height=380, x_title="Share of total gain")
+            fig.update_layout(showlegend=False)
+            fig.update_xaxes(tickformat=".0%", showgrid=True, gridcolor=GRID)
+            fig.update_yaxes(gridcolor="rgba(0,0,0,0)")
+            st.plotly_chart(fig)
+            st.caption(f"Feature importance of the XGBRanker trained on all {meta['trained_races']} races "
+                       f"through {meta['trained_through']}. Simulation temperature: {meta['temperature']}.")
 
-        st.subheader("Look back at a past race")
-        past = bt.drop_duplicates("race_id").sort_values("race_date", ascending=False)
-        pick = st.selectbox("Race", list(past["race_id"]),
-                            format_func=dict(zip(past["race_id"], past["race_label"])).get)
-        one = bt[bt["race_id"] == pick]
-        rho = one["exp_finish"].rank().corr(one["finish_position"].rank())
-        hits = int(one.nsmallest(10, "exp_finish")["top10"].sum())
-        winner = one.loc[one["finish_position"].idxmin()]
-        win_rank = int(one["exp_finish"].rank().loc[winner.name])
-        st.write(f"Forecast made as if before the race (models trained only on earlier races, real starting grid). "
-                 f"**{hits} of the model's top 10** finished in the top 10, rank correlation **{rho:.2f}**. "
-                 f"Winner: #{winner['car_number']} {winner['driver']}, ranked {win_rank} of {len(one)} by the model.")
-        st.plotly_chart(finish_range_chart(one, has_result=True))
-        st.caption("Black diamonds are real finishes; red × marks cars that didn't finish.")
+        with panel("past_race"):
+            st.subheader("Look back at a past race")
+            past = bt.drop_duplicates("race_id").sort_values("race_date", ascending=False)
+            race_pick = st.selectbox("Race", list(past["race_id"]),
+                                     format_func=dict(zip(past["race_id"], past["race_label"])).get)
+            one = bt[bt["race_id"] == race_pick]
+            rho = one["exp_finish"].rank().corr(one["finish_position"].rank())
+            hits = int(one.nsmallest(10, "exp_finish")["top10"].sum())
+            winner = one.loc[one["finish_position"].idxmin()]
+            win_rank = int(one["exp_finish"].rank().loc[winner.name])
+            c1, c2, c3 = st.columns(3)
+            c1.metric("Model's top 10 that hit", f"{hits} of 10", border=True)
+            c2.metric("Rank correlation", f"{rho:.2f}", border=True)
+            c3.metric("Winner's model rank", f"{win_rank} of {len(one)}", f"#{winner['car_number']} {winner['driver']}",
+                      delta_color="off", delta_arrow="off", border=True)
+            st.caption("Forecast made as if before the race: models trained only on earlier races, with the real "
+                       "starting grid.")
+            st.plotly_chart(finish_range_chart(one, has_result=True))
+            st.caption("Black diamonds are real finishes; red × marks cars that didn't finish.")
 
 # ---------------------------------------------------------------- data
 
 with tab_data:
-    st.subheader("Every car, every race")
-    st.write(f"{len(table):,} car entries in {table['race_id'].nunique()} Cup points races, "
-             f"{table['race_date'].min()} to {table['race_date'].max()}. All the history columns "
-             "(`form_`, `trk_`, `type_`, `team_`, `season_`) only use earlier races.")
-    st.dataframe(table.tail(500), hide_index=True)
-    st.caption("Showing the latest 500 rows; the download has all of them.")
-    st.download_button("Download the full table (CSV)", table.to_csv(index=False), "races.csv", mime="text/csv")
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("Car entries", f"{len(table):,}", border=True)
+    c2.metric("Cup points races", f"{table['race_id'].nunique()}", border=True)
+    c3.metric("Tracks", f"{table['track_id'].nunique()}", border=True)
+    c4.metric("Drivers", f"{table['driver_id'].nunique()}", border=True)
+
+    with panel("table"):
+        st.subheader("Every car, every race")
+        st.write(f"{table['race_date'].min()} to {table['race_date'].max()}. All the history columns "
+                 "(`form_`, `trk_`, `type_`, `team_`, `season_`) only use earlier races.")
+        st.dataframe(table.tail(500), hide_index=True)
+        st.caption("Showing the latest 500 rows; the download has all of them.")
+        st.download_button("Download the full table (CSV)", table.to_csv(index=False), "races.csv",
+                           mime="text/csv", icon=":material/download:")
     if fc is not None:
-        st.subheader("This race's model inputs")
-        st.dataframe(fc[["car_number", "driver"] + rm.FEATURES], hide_index=True)
+        with panel("inputs"):
+            st.subheader("This race's model inputs")
+            st.dataframe(fc[["car_number", "driver"] + rm.FEATURES], hide_index=True)
+
+st.html(FOOTER.format(linkedin=LINKEDIN_URL, github=GITHUB_URL))
