@@ -17,6 +17,10 @@ on Windows). It opens at <http://localhost:8501>. The live copy is at
    done, the real starting grid, then simulates the race 10,000 times live. Use it in
    race week, especially after qualifying.
 
+The app keeps the data, models and forecast in memory so pages load quickly.
+`data_version()` checks when those files last changed, so after a push with a new
+race the app picks up the new files by itself, with no reboot needed.
+
 If NASCAR hasn't posted an entry list yet, the page says so. If there's no race on the
 schedule at all (between seasons), it says that too.
 

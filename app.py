@@ -156,18 +156,29 @@ st.set_page_config(page_title="XGBoost NASCAR Predictor", page_icon="🏁", layo
 
 # ---------------------------------------------------------------- data
 
+def data_version():
+    """When the data, models or forecast last changed on disk.
+
+    The loaders below take this as an argument, so their caches refresh by themselves when
+    a push brings new files. Without it, the live app kept serving the previous race's
+    numbers until it was rebooted.
+    """
+    files = (rm.TABLE, rm.FOLDER / "meta.json", rm.REPORTS / "race_next.json", rm.REPORTS / "race_metrics.csv")
+    return max((f.stat().st_mtime for f in files if f.exists()), default=0.0)
+
+
 @st.cache_data
-def get_table():
+def get_table(version):
     return rm.load_table()
 
 
 @st.cache_resource
-def get_models():
+def get_models(version):
     return rm.load()
 
 
 @st.cache_data
-def get_reports():
+def get_reports(version):
     names = ("backtest", "metrics", "metrics_by_type", "calibration")
     paths = {k: rm.REPORTS / f"race_{k}.csv" for k in names}
     if not all(p.exists() for p in paths.values()):
@@ -176,7 +187,7 @@ def get_reports():
 
 
 @st.cache_data
-def get_saved_forecast():
+def get_saved_forecast(version):
     csv, meta = rm.REPORTS / "race_next.csv", rm.REPORTS / "race_next.json"
     if not (csv.exists() and meta.exists()):
         return None, None
@@ -189,14 +200,14 @@ def get_next_race(after_date):
 
 
 @st.cache_data(ttl=600, show_spinner="Reading NASCAR's entry list and simulating the race 10,000 times...")
-def live_forecast(race_json, nonce):
+def live_forecast(race_json, nonce, version):
     """Fresh forecast from the live entry list (and grid, once qualifying is done)."""
     race = json.loads(race_json)
     entries = entry_rows(race)
     if entries.empty:
         return None
-    models, meta = get_models()
-    rows = upcoming_rows(get_table(), race, entries)
+    models, meta = get_models(version)
+    rows = upcoming_rows(get_table(version), race, entries)
     fc, finish = rm.forecast_race(models, rows, meta["temperature"])
     return fc.join(rm.finish_distribution(finish))
 
@@ -290,15 +301,16 @@ def driver_card(d, rank, n):
 
 # ---------------------------------------------------------------- the next race
 
+version = data_version()
 try:
-    table = get_table()
-    models, meta = get_models()
+    table = get_table(version)
+    models, meta = get_models(version)
 except FileNotFoundError as err:
     st.error(f"{err}")
     st.stop()
 
 race = get_next_race(table["race_date"].max())
-saved_fc, saved_race = get_saved_forecast()
+saved_fc, saved_race = get_saved_forecast(version)
 st.session_state.setdefault("nonce", 0)
 
 st.html(STYLE)
@@ -311,7 +323,7 @@ if race is None:
 else:
     use_saved = (saved_race is not None and saved_race["race_id"] == race["race_id"]
                  and st.session_state["nonce"] == 0)
-    fc = saved_fc if use_saved else live_forecast(json.dumps(race), st.session_state["nonce"])
+    fc = saved_fc if use_saved else live_forecast(json.dumps(race), st.session_state["nonce"], version)
     if fc is not None:
         grid_known = fc["start_position"].notna().all()
 
@@ -338,7 +350,7 @@ else:
                  + (" (saved)." if use_saved else ", refreshed live."))
 
 tab_race, tab_driver, tab_eval, tab_data = st.tabs(["Race forecast", "Driver view", "How good is it?", "Data"])
-reports = get_reports()
+reports = get_reports(version)
 
 # ---------------------------------------------------------------- race forecast
 
