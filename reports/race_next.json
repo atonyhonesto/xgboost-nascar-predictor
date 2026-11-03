@@ -1,12 +1,12 @@
 {
   "season": 2026,
-  "race_id": 5632,
-  "race_date": "2026-11-01",
-  "race_name": "Xfinity 500",
-  "track_id": 22,
-  "track": "Martinsville Speedway",
-  "track_miles": 0.526,
-  "track_type": "short",
-  "scheduled_laps": 500,
+  "race_id": 5601,
+  "race_date": "2026-11-08",
+  "race_name": "NASCAR Championship Race",
+  "track_id": 40,
+  "track": "Homestead-Miami Speedway",
+  "track_miles": 1.5,
+  "track_type": "intermediate",
+  "scheduled_laps": 267,
   "playoff": 1
 }
