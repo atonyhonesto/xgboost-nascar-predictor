@@ -20,8 +20,9 @@ import race_model as rm
 from race_data import entry_rows, next_race, upcoming_rows
 
 # Chart palette (validated for colour-blind separation on both the light and dark
-# surfaces; see docs/app.md). ACCENT is the brand maroon, lifted so it reads in dark mode.
-BLUE, ACCENT, MUTED, INK = "#2a78d6", "#c03a5f", "#898781", "#0b0b0b"
+# surfaces; see docs/app.md). ACCENT is a red-orange that sits with the blue livery but
+# stays clearly apart from the DNF red.
+BLUE, ACCENT, MUTED, INK = "#2a78d6", "#e45d2b", "#898781", "#0b0b0b"
 POS, NEG = BLUE, ACCENT          # diverging poles for SHAP contributions
 CRITICAL = "#d03b3b"             # DNF only, always paired with an x marker + label
 GRID = "rgba(137,135,129,0.25)"
@@ -29,35 +30,38 @@ GRID = "rgba(137,135,129,0.25)"
 LINKEDIN_URL = "https://www.linkedin.com/in/tony-honesto-4195023"
 GITHUB_URL = "https://github.com/atonyhonesto"
 
-# Page styling: deep maroon, racing gold and a fiery orange sweep, slanted racing type.
-# Theme colours for Streamlit's own widgets live in .streamlit/config.toml. Everything here
-# uses translucent fills or fixed-colour blocks, so it reads in both light and dark mode.
+# Page styling: a deep royal-blue livery with bright blue, sky blue, white and a red accent,
+# plus slanted racing type. Theme colours for Streamlit's own widgets live in
+# .streamlit/config.toml. Everything here uses translucent fills or fixed-colour blocks, so it
+# reads in both light and dark mode.
 STYLE = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@1,600;1,700;1,800&display=swap');
-:root { --maroon: #8c1d40; --rose: #c03a5f; --gold: #f2b21b; --flame: #d9480f; --night: #141012;
+:root { --navy: #0a2463; --royal: #2f6fe0; --sky: #7cc7ff; --red: #e03a3a; --night: #0d1320;
         --race: 'Barlow Condensed', 'Arial Narrow', sans-serif; }
 
 /* Banner */
 .hero { position: relative; overflow: hidden; border-radius: 6px; padding: 22px 28px 30px;
-        background: linear-gradient(100deg, #3f0818 0%, var(--maroon) 58%, var(--flame) 100%); }
-.hero::after { content: ""; position: absolute; top: 0; right: -60px; width: min(240px, 35%); height: 100%;
-               background: repeating-linear-gradient(90deg, var(--gold) 0 14px, transparent 14px 30px);
-               opacity: .3; transform: skewX(-24deg); }
+        background: linear-gradient(100deg, #061538 0%, var(--navy) 45%, #1f56c9 100%); }
+.hero::after { content: ""; position: absolute; top: 0; right: -60px; width: min(260px, 38%); height: 100%;
+               background: repeating-linear-gradient(90deg, #fff 0 12px, transparent 12px 22px,
+                                                     var(--red) 22px 30px, transparent 30px 42px);
+               opacity: .28; transform: skewX(-24deg); }
 .hero .name { font-family: var(--race); font-style: italic; font-weight: 800; letter-spacing: .5px;
               line-height: 1; font-size: clamp(2rem, 5vw, 3.2rem); color: #fff; }
-.hero .name span { color: var(--gold); }
-.hero .stripe { height: 4px; width: 130px; margin-top: 10px; background: var(--gold); transform: skewX(-24deg); }
-.hero .by { margin-top: 10px; font-size: .95rem; color: #f7e7c6; }
-.hero .by a { color: var(--gold); font-weight: 600; text-decoration: none; }
+.hero .name span { color: var(--sky); }
+.hero .stripe { height: 4px; width: 130px; margin-top: 10px; background: var(--red); transform: skewX(-24deg);
+                box-shadow: 0 5px 0 #fff; }
+.hero .by { margin-top: 14px; font-size: .95rem; color: #dbe8ff; }
+.hero .by a { color: var(--sky); font-weight: 600; text-decoration: none; }
 .hero .by a:hover { text-decoration: underline; }
 .hero .checker { position: absolute; left: 0; right: 0; bottom: 0; height: 10px; opacity: .45;
                  background: conic-gradient(#fff 25%, var(--night) 0 50%, #fff 0 75%, var(--night) 0) 0 0 / 10px 10px; }
 
-/* Section headings: slanted racing type behind a gold-to-flame flag */
+/* Section headings: slanted racing type behind a red-to-blue flag */
 [data-testid="stMain"] h3 { font-family: var(--race); font-style: italic; font-weight: 800; letter-spacing: .3px; }
 [data-testid="stMain"] h3::before { content: ""; display: inline-block; width: 7px; height: .85em; margin-right: 10px;
-    vertical-align: -.08em; background: linear-gradient(180deg, var(--gold), var(--flame)); transform: skewX(-18deg); }
+    vertical-align: -.08em; background: linear-gradient(180deg, var(--red), var(--royal)); transform: skewX(-18deg); }
 
 /* Tabs */
 [data-testid="stTab"] p { font-family: var(--race); font-style: italic; font-weight: 700;
@@ -67,26 +71,26 @@ STYLE = """
 /* Panels around charts and tables: a livery stripe across the top */
 [class*="st-key-panel_"] { position: relative; overflow: hidden; }
 [class*="st-key-panel_"]::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px;
-    background: linear-gradient(90deg, var(--maroon), var(--rose) 55%, var(--gold)); }
+    background: linear-gradient(90deg, var(--navy), var(--royal) 55%, var(--sky)); }
 
 /* Stat tiles */
-[data-testid="stMetric"] { border-left: 5px solid var(--rose) !important; }
+[data-testid="stMetric"] { border-left: 5px solid var(--royal) !important; }
 [data-testid="stMetricValue"] { font-family: var(--race); font-style: italic; font-weight: 700; }
 [data-testid="stMetricLabel"] p { text-transform: uppercase; letter-spacing: .6px; font-size: .78rem; font-weight: 600; }
 
 /* Race info chips */
 .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 6px; }
 .chip { font-size: .85rem; padding: 3px 11px; border-radius: 999px; white-space: nowrap;
-        background: rgba(192,58,95,.10); border: 1px solid rgba(192,58,95,.40); }
-.chip.gold { background: rgba(242,178,27,.16); border-color: rgba(242,178,27,.65); }
+        background: rgba(47,111,224,.10); border: 1px solid rgba(47,111,224,.40); }
+.chip.sky { background: rgba(124,199,255,.20); border-color: rgba(124,199,255,.75); }
 .chip.hot { color: #fff; border: none; font-weight: 600;
-            background: linear-gradient(90deg, var(--maroon), var(--flame)); }
+            background: linear-gradient(90deg, var(--navy), var(--red)); }
 
 /* Driver card */
 .dcard { display: flex; align-items: center; gap: 18px; margin: 6px 0 14px; flex-wrap: wrap; }
 .dnum { font-family: var(--race); font-style: italic; font-weight: 800; font-size: 2.6rem; line-height: 1;
-        color: #fff; padding: 6px 20px 4px; border-radius: 4px; border-bottom: 4px solid var(--gold);
-        background: linear-gradient(120deg, var(--maroon), var(--flame)); transform: skewX(-12deg); }
+        color: #fff; padding: 6px 20px 4px; border-radius: 4px; border-bottom: 4px solid var(--red);
+        background: linear-gradient(120deg, var(--navy), #1f56c9); transform: skewX(-12deg); }
 .dnum span { display: inline-block; transform: skewX(12deg); }
 .dname { font-family: var(--race); font-style: italic; font-weight: 800; font-size: 2rem; line-height: 1.05; }
 .dmeta { font-size: .9rem; opacity: .75; margin-top: 2px; }
@@ -96,7 +100,7 @@ STYLE = """
         display: flex; flex-wrap: wrap; gap: 10px 24px; justify-content: space-between; align-items: center; }
 .foot::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 6px; opacity: .5;
                 background: conic-gradient(#898781 25%, transparent 0 50%, #898781 0 75%, transparent 0) 0 0 / 6px 6px; }
-.foot a { color: var(--rose); font-weight: 600; text-decoration: none; }
+.foot a { color: var(--royal); font-weight: 600; text-decoration: none; }
 .foot .stack span { font-family: var(--race); font-style: italic; font-weight: 700; letter-spacing: .4px;
                     padding: 2px 9px; margin-right: 6px; border-radius: 3px; border: 1px solid rgba(137,135,129,.45); }
 .foot .note { opacity: .65; flex-basis: 100%; }
@@ -284,7 +288,7 @@ def race_chips(race, grid_known):
         f"{pd.Timestamp(race['race_date']):%a %b %d, %Y}", f"{race['scheduled_laps']} laps",
         f"{race['track_miles']:.3g}-mile {TYPE_LABELS[race['track_type']]}")]
     if grid_known is not None:
-        chips.append('<span class="chip gold">'
+        chips.append('<span class="chip sky">'
                      + ("Grid set by qualifying" if grid_known else "Random grids until qualifying") + "</span>")
     if race["playoff"]:
         chips.append('<span class="chip hot">Playoff race</span>')
@@ -373,7 +377,7 @@ with tab_race:
             st.subheader("Where each car is likely to finish")
             st.plotly_chart(finish_range_chart(fc, has_result=False, highlight=st.session_state.get("driver")))
             st.caption("Cars sorted by expected finish. The pale bar covers the middle 80% of simulated "
-                       "finishes. The car picked in *Driver view* is shown in maroon.")
+                       "finishes. The car picked in *Driver view* is shown in orange.")
 
         with panel("chances"):
             st.subheader("Every car's chances")
@@ -447,7 +451,7 @@ with tab_driver:
             fig.update_xaxes(zeroline=True, zerolinecolor=MUTED, showgrid=True, gridcolor=GRID)
             st.plotly_chart(fig)
             st.caption("SHAP values from the XGBRanker: how much each factor moves this car's score up the "
-                       "order (blue) or down it (maroon)." + ("" if grid_known else " Until the grid is set, "
+                       "order (blue) or down it (orange)." + ("" if grid_known else " Until the grid is set, "
                        "this explains the car from a mid-field start."))
 
         hist = table[table["driver_id"] == d["driver_id"]].sort_values("race_date")

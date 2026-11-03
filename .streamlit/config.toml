@@ -1,4 +1,4 @@
-# App look: deep maroon and racing gold with a fiery orange accent.
+# App look: a deep royal-blue livery with bright blue, sky blue, white and a red accent.
 # Light and dark both defined; viewers can switch in the app's Settings menu.
 
 [theme]
@@ -6,17 +6,17 @@ headingFontWeights = [800, 700, 700, 600, 600, 600]
 baseRadius = "small"
 
 [theme.light]
-primaryColor = "#8c1d40"
-linkColor = "#8c1d40"
+primaryColor = "#1f56c9"
+linkColor = "#1f56c9"
 backgroundColor = "#ffffff"
-secondaryBackgroundColor = "#f7f1ea"
-textColor = "#1c1416"
-borderColor = "#e4d6cc"
+secondaryBackgroundColor = "#eef3fb"
+textColor = "#0f1a2e"
+borderColor = "#d3ddef"
 
 [theme.dark]
-primaryColor = "#f2b21b"
-linkColor = "#f2b21b"
-backgroundColor = "#141012"
-secondaryBackgroundColor = "#24191d"
-textColor = "#f5efe9"
-borderColor = "#3a2a30"
+primaryColor = "#7cc7ff"
+linkColor = "#7cc7ff"
+backgroundColor = "#0d1320"
+secondaryBackgroundColor = "#16203a"
+textColor = "#eef2f8"
+borderColor = "#2a3756"

@@ -25,7 +25,7 @@ If NASCAR hasn't posted an entry list yet, the page says so. If there's no race 
 schedule at all (between seasons), it says that too.
 
 Chips under the race name give the date, laps, track and whether it's a playoff race,
-plus a gold chip saying whether the grid is set yet. The line below says how many cars
+plus a sky-blue chip saying whether the grid is set yet. The line below says how many cars
 are entered and whether the forecast is the saved one or a live refresh. **Until the grid is set,
 each batch of simulations draws a random grid,** so the uncertainty about where
 everyone starts is part of the forecast.
@@ -38,7 +38,7 @@ everyone starts is part of the forecast.
   "how open is it?": the favourite's win chance against an even split of the field.
 - **Where each car is likely to finish:** one line per car, sorted by expected finish.
   The dot is the expected finish and the pale bar covers the middle 80% of simulated
-  finishes. The car you pick in *Driver view* is shown in maroon.
+  finishes. The car you pick in *Driver view* is shown in orange.
 - **Every car's chances:** start, expected finish, and the chance of a win, top 3,
   top 5, top 10 and DNF. The progress bars are scaled per column so the differences
   are easy to see, and the numbers are the real chances.
@@ -53,7 +53,7 @@ Pick any car in the race.
 - **Where they finished in 10,000 simulations:** the full spread of outcomes, position
   by position. Finishes at the very back include simulated DNFs.
 - **What the model sees:** SHAP values from the ranker, showing which factors push this
-  car up the order (blue) or back (maroon), with each factor's value. Before the grid is
+  car up the order (blue) or back (orange), with each factor's value. Before the grid is
   set, the car is explained from a mid-field start, because "unknown" isn't something
   the model has learned from.
 - **Recent form:** the last 10 races, with DNFs marked by a red **×**.
@@ -87,36 +87,40 @@ or any sponsor.
 
 ## The look
 
-The page has a motorsport feel: deep maroon, racing gold and a fiery orange sweep.
+The page has a motorsport feel, styled for the championship finale like a race-team
+livery: deep royal blue, bright blue, sky blue and white, with a red accent. It uses no
+team names, logos or sponsors. (Until 2026-11-03 it was maroon, gold and orange.)
 The pieces live near the top of `app.py`:
 - **`STYLE`** is one stylesheet for the whole page: the slanted racing type
-  (Barlow Condensed, from Google Fonts), a gold-to-flame flag in front of each section
-  heading, uppercase italic tabs, a maroon edge on every stat tile, chips, the driver
+  (Barlow Condensed, from Google Fonts), a red-to-blue flag in front of each section
+  heading, uppercase italic tabs, a blue edge on every stat tile, chips, the driver
   card, and the footer. It only uses translucent fills or fixed-colour blocks, so it
-  reads in both light and dark mode.
-- **`HERO`** is the banner: the title, a slanted gold stripe, the "Built by" links and
-  a checkered-flag strip along the bottom. Keep the title text as "XGBoost NASCAR
+  reads in both light and dark mode. The colours are CSS variables at its top
+  (`--navy`, `--royal`, `--sky`, `--red`), so a new livery is a few-line change.
+- **`HERO`** is the banner: a navy-to-blue sweep with white and red stripes, the title
+  with "XGBoost" in sky blue, a red-and-white underline, the "Built by" links and a
+  checkered-flag strip along the bottom. Keep the title text as "XGBoost NASCAR
   Predictor" (not all capitals), because the keep-awake check looks for exactly that
   text.
-- **`panel(key)`** wraps a chart or table in a bordered card with a livery stripe
-  (maroon to gold) across the top. Each one gets a `panel_` key, which is what the
+- **`panel(key)`** wraps a chart or table in a bordered card with a stripe (navy to
+  sky blue) across the top. Each one gets a `panel_` key, which is what the
   stylesheet hooks onto.
 - **`FOOTER`** is the footer.
 - **Streamlit's own widgets** (buttons, the active tab, progress bars, links) take
-  their colours from `.streamlit/config.toml`: maroon in light mode, gold in dark mode.
+  their colours from `.streamlit/config.toml`: royal blue in light mode, sky blue on a
+  navy-black background in dark mode.
 
 ## Colours
 
 The charts have their own palette, checked with a colour-validation script so that
 every pair of colours shown together stays distinguishable for colour-blind viewers,
-on both the white and the near-black background. The brand gold and orange didn't
-pass next to the red used for DNFs, so they stay out of the charts and decorate the
-page instead., and colour is never the only clue: every series has
-a legend, and DNFs get their own **×** marker.
+on both the white and the dark navy background. A pure red accent would clash with the
+red used for DNFs, so the accent is a red-orange. Colour is never the only clue: every
+series has a legend, and DNFs get their own **×** marker.
 
 - **Blue** (`#2a78d6`): the model's forecasts, the main bars, and factors that push a car forward
-- **Maroon** (`#c03a5f`, a lifted brand maroon): the car picked in Driver view, and
-  factors that push a car back
+- **Red-orange** (`#e45d2b`): the car picked in Driver view, and factors that push a
+  car back
 - **Black diamond:** a car's real finish in a past race
 - **Grey** (`#898781`): baselines and reference lines
 - **Red** (`#d03b3b`): a DNF only, always an **×**
