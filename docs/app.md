@@ -30,6 +30,17 @@ are entered and whether the forecast is the saved one or a live refresh. **Until
 each batch of simulations draws a random grid,** so the uncertainty about where
 everyone starts is part of the forecast.
 
+## The "How it works" button
+
+Under the banner, a one-line summary for fans sits next to a **How it works** button
+for the tech side, the same as in the other showcase apps. It opens a panel with the
+tech stack as badges (`TECH`) and a six-step story of how the app is built
+(`tech_story()`): the data pipeline, the two XGBoost models, the Monte Carlo
+simulation, the honest testing, the SHAP explanations and the app itself. It ends with
+what the model doesn't know. The numbers in it (races, car entries, features,
+temperature, backtest size) come from the live data, so they stay current after each
+race.
+
 ## The four tabs
 
 ### Race forecast

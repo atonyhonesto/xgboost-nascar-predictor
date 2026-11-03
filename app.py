@@ -73,6 +73,24 @@ STYLE = """
 [class*="st-key-panel_"]::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px;
     background: linear-gradient(90deg, var(--navy), var(--royal) 55%, var(--sky)); }
 
+/* The hook under the banner, and the "How it works" button beside it */
+.hook { font-size: 1.05rem; line-height: 1.45; padding: 4px 0 2px; }
+.hook b { font-family: var(--race); font-style: italic; font-weight: 800; font-size: 1.35rem; margin-right: 4px; }
+/* Navy with sky-blue type in every state (Streamlit greys it out while the panel is open) */
+button[data-testid="stPopoverButton"], button[data-testid="stPopoverButton"]:focus,
+button[data-testid="stPopoverButton"]:active, button[data-testid="stPopoverButton"][aria-expanded="true"] {
+    background: var(--navy) !important; color: var(--sky) !important; border: 2px solid var(--navy) !important; }
+button[data-testid="stPopoverButton"] p { font-family: var(--race); font-style: italic; font-weight: 700;
+    font-size: 1.05rem; text-transform: uppercase; letter-spacing: .8px; }
+button[data-testid="stPopoverButton"]:hover, button[data-testid="stPopoverButton"][aria-expanded="true"] {
+    border-color: var(--red) !important; }
+
+/* Tech badges */
+.tech { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 4px; }
+.tech span { font-family: var(--race); font-style: italic; font-weight: 700; letter-spacing: .5px;
+             text-transform: uppercase; font-size: .95rem; padding: 2px 10px; border-radius: 3px;
+             border: 1px solid rgba(47,111,224,.55); }
+
 /* Stat tiles */
 [data-testid="stMetric"] { border-left: 5px solid var(--royal) !important; }
 [data-testid="stMetricValue"] { font-family: var(--race); font-style: italic; font-weight: 700; }
@@ -295,6 +313,57 @@ def race_chips(race, grid_known):
     return '<div class="chips">' + "".join(chips) + "</div>"
 
 
+# The tech stack, in badge order (shown in the "How it works" panel).
+TECH = ["Python", "Requests", "pandas", "NumPy", "XGBoost", "SHAP", "Monte Carlo", "Plackett–Luce",
+        "Plotly", "Streamlit", "GitHub Actions"]
+
+
+def tech_badges():
+    return '<div class="tech">' + "".join(f"<span>{html.escape(t)}</span>" for t in TECH) + "</div>"
+
+
+def tech_story(table, meta, reports):
+    """How the app is built, from raw feeds to the page, with real counts."""
+    tested = (f"{reports['backtest']['race_id'].nunique()} races since January 2025"
+              if reports is not None else "every race since January 2025")
+    return f"""
+**1 · Data pipeline.** Python and Requests pull NASCAR's public results and loop-data feeds
+for every Cup points race since 2018: {len(table):,} car entries in {table['race_id'].nunique()}
+races at {table['track_id'].nunique()} tracks. Each finished race is downloaded once and cached.
+`race_data.py` turns them into one table where every history column (recent form, record at
+this track and at similar tracks, team form) uses **earlier races only**, so the model never
+peeks at the result it's predicting.
+
+**2 · Two XGBoost models.** An **XGBRanker** (`rank:pairwise`) learns *who finishes ahead of
+whom* from {len(rm.FEATURES)} features. It only learns from cars still running at the finish,
+because a wreck is bad luck, not slowness. An **XGBClassifier** gives each car's chance of a
+DNF. Track type and manufacturer go in as native categorical features.
+
+**3 · Monte Carlo race simulation.** Each car's score plus random (Gumbel) noise sets the
+finishing order, which matches exactly what the pairwise ranker learned, and DNFs are drawn
+separately. That runs 10,000 times. How much luck to add (the temperature, now
+{meta['temperature']}) is fitted on races the model hadn't seen, using the Plackett–Luce
+likelihood. Before qualifying, each batch of simulations draws a random starting grid.
+
+**4 · Honest testing.** A walk-forward backtest over {tested}: before each race, the
+models were retrained on earlier races only. The results are scored against simple baselines
+(the starting grid, recent form, everyone equal), and every score is shown in *How good is
+it?*, including where the model loses (superspeedways).
+
+**5 · Explaining it.** SHAP values (`pred_contribs`) in *Driver view* show which factors push
+each car up or down the order.
+
+**6 · The app.** Streamlit with cached data that refreshes itself when new results are
+pushed, and light and dark themes. Plotly charts use a palette checked for colour-blind
+readers. It's tested with Streamlit's AppTest and Playwright screenshots, kept awake by a
+GitHub Action, and deployed on Streamlit Community Cloud. The models were trained on
+{meta['trained_races']} races through {meta['trained_through']}.
+
+**What it doesn't know:** practice speeds, pit strategy, weather, and who is racing for the
+championship.
+"""
+
+
 def driver_card(d, rank, n):
     start = f" · starts P{int(d['start_position'])}" if pd.notna(d["start_position"]) else ""
     meta = f"{d['team']} · {d['make']} · ranked {rank} of {n} by expected finish{start}"
@@ -315,10 +384,21 @@ except FileNotFoundError as err:
 
 race = get_next_race(table["race_date"].max())
 saved_fc, saved_race = get_saved_forecast(version)
+reports = get_reports(version)
 st.session_state.setdefault("nonce", 0)
 
 st.html(STYLE)
 st.html(HERO.format(linkedin=LINKEDIN_URL, github=GITHUB_URL))
+
+# The hook for fans, and a button for the tech side
+hook, tech = st.columns([4, 1], vertical_alignment="center")
+hook.html(f'<div class="hook"><b>Who wins the next Cup race?</b> Every car\'s chances, from XGBoost models '
+          f'trained on {table["race_id"].nunique()} races since 2018 and 10,000 simulated races.</div>')
+with tech.popover("How it works", icon=":material/settings:", width="stretch", key="tech"):
+    st.subheader("How it's built")
+    st.html(tech_badges())
+    st.markdown(tech_story(table, meta, reports))
+
 grid_known = None
 if race is None:
     st.info("There's no upcoming Cup race on NASCAR's published schedule yet. The model's track record "
@@ -354,7 +434,6 @@ else:
                  + (" (saved)." if use_saved else ", refreshed live."))
 
 tab_race, tab_driver, tab_eval, tab_data = st.tabs(["Race forecast", "Driver view", "How good is it?", "Data"])
-reports = get_reports(version)
 
 # ---------------------------------------------------------------- race forecast
 
