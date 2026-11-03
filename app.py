@@ -30,6 +30,16 @@ GRID = "rgba(137,135,129,0.25)"
 LINKEDIN_URL = "https://www.linkedin.com/in/tony-honesto-4195023"
 GITHUB_URL = "https://github.com/atonyhonesto"
 
+# Tony's other showcase apps, shown as cards above the footer: (name, what it does, link)
+OTHER_APPS = [
+    ("Fuel Strategy", "Pit windows and fuel-mileage finishes, simulated lap by lap",
+     "https://xgboost-fuel-strategy.streamlit.app/"),
+    ("NFL Playoff Odds", "Every team's playoff chances from thousands of simulated seasons",
+     "https://xgboost-nfl-playoff-odds.streamlit.app/"),
+    ("Fourth Down Coach", "Go for it, kick or punt? Win chances for each choice",
+     "https://nfl-fourth-down-coach.streamlit.app/"),
+]
+
 # Page styling: a deep royal-blue livery with bright blue, sky blue, white and a red accent,
 # plus slanted racing type. Theme colours for Streamlit's own widgets live in
 # .streamlit/config.toml. Everything here uses translucent fills or fixed-colour blocks, so it
@@ -113,6 +123,16 @@ button[data-testid="stPopoverButton"]:hover, button[data-testid="stPopoverButton
 .dname { font-family: var(--race); font-style: italic; font-weight: 800; font-size: 2rem; line-height: 1.05; }
 .dmeta { font-size: .9rem; opacity: .75; margin-top: 2px; }
 
+/* More apps: one card per showcase app */
+.apps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin: 6px 0 4px; }
+.apps a { display: block; text-decoration: none; color: inherit; padding: 12px 16px 14px; border-radius: 6px;
+          border: 1px solid rgba(47,111,224,.40); border-top: 4px solid var(--royal);
+          background: rgba(47,111,224,.06); transition: border-color .15s, background .15s; }
+.apps a:hover { border-color: var(--red); background: rgba(47,111,224,.12); }
+.apps b { display: block; font-family: var(--race); font-style: italic; font-weight: 800; font-size: 1.3rem; }
+.apps b::after { content: " \\2197"; font-size: 1rem; color: var(--royal); }
+.apps small { font-size: .88rem; opacity: .8; }
+
 /* Footer */
 .foot { margin-top: 36px; padding-top: 14px; font-size: .85rem; position: relative;
         display: flex; flex-wrap: wrap; gap: 10px 24px; justify-content: space-between; align-items: center; }
@@ -131,7 +151,8 @@ HERO = """
   <div class="stripe"></div>
   <div class="by">Built by <b>Tony Honesto</b> &middot;
     <a href="{linkedin}" target="_blank">LinkedIn</a> &middot;
-    <a href="{github}" target="_blank">GitHub</a></div>
+    <a href="{github}" target="_blank">GitHub</a> &middot;
+    <a href="#more-apps">More apps</a></div>
   <div class="checker"></div>
 </div>
 """
@@ -708,5 +729,12 @@ with tab_data:
         with panel("inputs"):
             st.subheader("This race's model inputs")
             st.dataframe(fc[["car_number", "driver"] + rm.FEATURES], hide_index=True)
+
+with panel("apps"):
+    st.subheader("More apps by Tony", anchor="more-apps")
+    st.write("The same toolkit (XGBoost, simulation and Streamlit) on other racing and football questions.")
+    st.html('<div class="apps">' + "".join(
+        f'<a href="{url}" target="_blank"><b>{name}</b><small>{blurb}</small></a>'
+        for name, blurb, url in OTHER_APPS) + "</div>")
 
 st.html(FOOTER.format(linkedin=LINKEDIN_URL, github=GITHUB_URL))

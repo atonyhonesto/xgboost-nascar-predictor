@@ -92,6 +92,16 @@ Four tiles count the car entries, races, tracks and drivers. Below them are the 
 table of every car in every race since 2018 (the latest 500 rows on screen, all of
 them in the download) and the exact model inputs for this race's entry list.
 
+## More apps
+
+Below the tabs, a **More apps by Tony** panel has a card for each of Tony's other
+showcase apps (fuel strategy, NFL playoff odds, the fourth-down coach). Each card opens
+that app in a new browser tab. The "More apps" link in the banner jumps straight down to
+it. The list is `OTHER_APPS` near the top of `app.py` (name, one-line description,
+link), so adding a new app is one more line there.
+
+## Footer
+
 A footer at the bottom of every tab repeats the "Built by" links, lists the techniques,
 and says the app is an independent fan project, not affiliated with NASCAR, any team
 or any sponsor.
